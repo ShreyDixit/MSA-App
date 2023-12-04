@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout code
@@ -99,7 +99,7 @@ jobs:
           asset_content_type: application/octet-stream
 
   build_windows:
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
       - name: Checkout code
