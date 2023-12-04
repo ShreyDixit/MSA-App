@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.11' # Replace '3.x' with your Python version
+          python-version: '3.10' # Replace '3.x' with your Python version
 
       - name: Install Poetry
         run: |
@@ -63,14 +63,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.11' # Replace '3.x' with your Python version
+          python-version: '3.10' # Replace '3.x' with your Python version
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo 'export PATH="$HOME/.poetry/bin:$PATH"' >> $HOME/.bash_profile
-          source $HOME/.bash_profile  # Source the profile to update the PATH
-          
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
 
       - name: Install project dependencies with Poetry
         run: |
@@ -112,12 +108,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.11' # Replace '3.x' with your Python version
+          python-version: '3.10' # Replace '3.x' with your Python version
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          export PATH=$HOME/.local/bin:$PATH
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
 
       - name: Install project dependencies with Poetry
         run: |
