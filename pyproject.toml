@@ -6,7 +6,7 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
+python = ">=3.10,<3.13"
 customtkinter = "^5.2.1"
 pyinstaller = "^6.2.0"
 msapy = "^1.5"
