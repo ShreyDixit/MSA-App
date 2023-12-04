@@ -5,3 +5,4 @@
 - Better Styling
 - Tests
 - Common Performance Metric
+- Shapley Value Plot
