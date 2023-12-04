@@ -121,10 +121,10 @@ jobs:
           
       - name: Set up MSVC for Python
         run: |
-          C:\Python\python.exe -m pip install --upgrade setuptools
-          C:\Python\python.exe -m pip install --upgrade wheel
-          C:\Python\python.exe -m pip install --upgrade pip
-          C:\Python\python.exe -m pip install msvc-runtime
+          pip install --upgrade setuptools
+          pip install --upgrade wheel
+          pip install --upgrade pip
+          pip install msvc-runtime
           
       - name: Install project dependencies with Poetry
         run: |
