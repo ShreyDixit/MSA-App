@@ -118,6 +118,14 @@ jobs:
           choco install visualstudio2019buildtools --package-parameters "--allWorkloads --includeRecommended --includeOptional" -y
           choco install python3 --params "/InstallDir:C:\Python" -y
           Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+          RefreshEnv.cmd
+          
+      - name: Set up MSVC for Python
+        run: |
+          C:\Python\python.exe -m pip install --upgrade setuptools
+          C:\Python\python.exe -m pip install --upgrade wheel
+          C:\Python\python.exe -m pip install --upgrade pip
+          C:\Python\python.exe -m pip install msvc-runtime
           
       - name: Install project dependencies with Poetry
         run: |
