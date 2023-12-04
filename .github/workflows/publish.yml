@@ -98,53 +98,53 @@ jobs:
           asset_name: msa_app_mac
           asset_content_type: application/octet-stream
 
-  # build_windows:
-  #   runs-on: windows-latest
+  build_windows:
+    runs-on: windows-latest
 
-  #   steps:
-  #     - name: Checkout code
-      #   uses: actions/checkout@v2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      # - name: Set up Python
-      #   uses: actions/setup-python@v2
-      #   with:
-      #     python-version: '3.10' # Replace '3.x' with your Python version
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10' # Replace '3.x' with your Python version
 
-      # - name: Install poetry
-      #   uses: abatilo/actions-poetry@v2
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
         
-      # - name: Install build tools
-      #   run: |
-      #     choco install visualstudio2019buildtools --package-parameters "--allWorkloads --includeRecommended --includeOptional" -y
-      #     choco install python3 --params "/InstallDir:C:\Python" -y
-      #     refreshenv
+      - name: Install build tools
+        run: |
+          choco install visualstudio2019buildtools --package-parameters "--allWorkloads --includeRecommended --includeOptional" -y
+          choco install python3 --params "/InstallDir:C:\Python" -y
+          Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
           
-      # - name: Install project dependencies with Poetry
-      #   run: |
-      #     poetry install --no-root
+      - name: Install project dependencies with Poetry
+        run: |
+          poetry install --no-root
 
-      # - name: Build Windows executable
-      #   run: |
-      #     poetry run pyinstaller msa_app/main.py --onefile --name msa_app_windows.exe
-      #     # Additional flags or configurations for Windows as needed
+      - name: Build Windows executable
+        run: |
+          poetry run pyinstaller msa_app/main.py --onefile --name msa_app_windows.exe
+          # Additional flags or configurations for Windows as needed
 
-      # - name: Create Windows release
-      #   id: create_windows_release
-      #   uses: actions/create-release@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     tag_name: ${{ github.sha }}-windows
-      #     release_name: Release ${{ github.sha }} (Windows)
-      #     draft: false
-      #     prerelease: false
+      - name: Create Windows release
+        id: create_windows_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.sha }}-windows
+          release_name: Release ${{ github.sha }} (Windows)
+          draft: false
+          prerelease: false
 
-      # - name: Upload Windows executable as asset
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_windows_release.outputs.upload_url }}
-      #     asset_path: ./dist/msa_app_windows.exe
-      #     asset_name: msa_app_windows.exe
-      #     asset_content_type: application/octet-stream
+      - name: Upload Windows executable as asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_windows_release.outputs.upload_url }}
+          asset_path: ./dist/msa_app_windows.exe
+          asset_name: msa_app_windows.exe
+          asset_content_type: application/octet-stream
