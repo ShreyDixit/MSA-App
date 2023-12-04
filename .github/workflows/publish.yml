@@ -112,7 +112,13 @@ jobs:
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2
-
+        
+      - name: Install build tools
+        run: |
+          choco install visualstudio2019buildtools --package-parameters "--allWorkloads --includeRecommended --includeOptional" -y
+          choco install python3 --params "/InstallDir:C:\Python" -y
+          refreshenv
+          
       - name: Install project dependencies with Poetry
         run: |
           poetry install --no-root
