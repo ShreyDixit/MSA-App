@@ -6,6 +6,7 @@ import pandas as pd
 
 from msa_app import ml_models
 
+
 class MSA:
     def __init__(self, file_path: str, y_column: str, model_name: str):
         self.file_path = file_path
@@ -36,13 +37,12 @@ class MSA:
     
     def save(self):
         save_dict = {
-            "shapley values" : list(self.shapley_table.shapley_values),
-            "elements" : list(self.shapley_table.columns),
+            "shapley_values": self.shapley_table.shapley_values.to_dict(),
             "test accuracy": self.test_accuracy,
             "model used": self.model_name,
         }
 
         with open("results.json", "w") as f:
-            json.dump(save_dict, f, indent=0)
+            json.dump(save_dict, f, indent=4)
             
         self.shapley_table.shapley_values.to_csv("shapley_values.csv")
