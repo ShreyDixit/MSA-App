@@ -68,7 +68,9 @@ jobs:
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
-          export PATH=$HOME/.local/bin:$PATH
+          echo 'export PATH="$HOME/.poetry/bin:$PATH"' >> $HOME/.bash_profile
+          source $HOME/.bash_profile  # Source the profile to update the PATH
+          
 
       - name: Install project dependencies with Poetry
         run: |
