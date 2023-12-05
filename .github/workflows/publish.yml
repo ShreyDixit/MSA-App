@@ -30,13 +30,14 @@ jobs:
       - name: Build Linux executable
         run: |
           poetry run pyinstaller msa_app/main.py --onefile --name msa_app_linux
-          # Additional flags or configurations for Linux as needed
+          mkdir -p ./artifacts
+          mv ./dist/msa_app_linux ./artifacts/msa_app_linux
           
       - name: Archive Linux executable
         uses: actions/upload-artifact@v2
         with:
           name: linux-artifact
-          path: ./dist/msa_app_linux
+          path: ./artifacts
 
   build_mac:
     runs-on: macos-latest
@@ -106,12 +107,14 @@ jobs:
       - name: Build Windows executable
         run: |
           poetry run pyinstaller msa_app/main.py --onefile --name msa_app_windows.exe
-          # Additional flags or configurations for Windows as needed
+          mkdir -p ./artifacts
+          mv ./dist/msa_app_windows.exe ./artifacts/msa_app_windows.exe
+
       - name: Archive Windows executable
         uses: actions/upload-artifact@v2
         with:
           name: windows-artifact
-          path: ./dist/your_script_windows.exe
+          path: ./artifacts
 
   create_release:
     needs: [build_linux, build_mac, build_windows]
@@ -119,13 +122,23 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Download artifacts
+      - name: Download Linux artifact
         uses: actions/download-artifact@v2
         with:
-          name: |
-            linux-artifact
-            mac-artifact
-            windows-artifact
+          name: linux-artifact
+          path: ./linux-artifact
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: mac-artifact
+          path: ./mac-artifact
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: windows-artifact
+          path: ./windows-artifact
 
       - name: Create release
         id: create_release
@@ -138,7 +151,7 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload artifacts as assets
+      - name: Upload Linux artifact as asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
