@@ -20,12 +20,12 @@ LogisticRegressionParams = {
 }
 
 SupportVectorClassifierParams = {
-    "kernel" : ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'],
+    "kernel" : ['linear', 'poly', 'rbf', 'sigmoid'],
     "degree" : randint(1, 7),
 }
 
 SupportVectorRegressionParams = {
-    "kernel" : ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'],
+    "kernel" : ['linear', 'poly', 'rbf', 'sigmoid'],
     "degree" : randint(1, 7),
 }
 
@@ -58,7 +58,7 @@ def prepare_data(path_to_data: str, y_column: str) -> Tuple[pd.DataFrame, pd.Ser
 def train_model(model_name : str, X: np.ndarray, y: np.ndarray, n_iter: int = 32):
     model_collection = models[model_name]
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9)
-    opt = RandomizedSearchCV(model_collection.model_class(), model_collection.hyperparameters, cv=4)
+    opt = RandomizedSearchCV(model_collection.model_class(), model_collection.hyperparameters, cv=4, n_iter=200)
     opt.fit(X_train.values, y_train)
     return opt.score(X_test.values, y_test), opt
 
