@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout code
@@ -99,7 +99,7 @@ jobs:
           asset_content_type: application/octet-stream
 
   build_windows:
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
       - name: Checkout code
@@ -112,7 +112,23 @@ jobs:
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2
+        
+      - name: Install build tools
+        run: |
+          choco install visualstudio2019buildtools --package-parameters "--allWorkloads --includeRecommended --includeOptional" -y
+          choco install python3 --params "/InstallDir:C:\Python" -y
+          Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+          
+      - name: Set up MSVC for Python
+        run: |
+          pip install --upgrade setuptools
+          pip install --upgrade wheel
+          pip install --upgrade pip
+          pip install msvc-runtime
+          
       - name: Install project dependencies with Poetry
         run: |
           poetry install --no-root
