@@ -31,27 +31,12 @@ jobs:
         run: |
           poetry run pyinstaller msa_app/main.py --onefile --name msa_app_linux
           # Additional flags or configurations for Linux as needed
-
-      - name: Create Linux release
-        id: create_linux_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Archive Linux executable
+        uses: actions/upload-artifact@v2
         with:
-          tag_name: ${{ github.sha }}-linux
-          release_name: Release ${{ github.sha }} (Linux)
-          draft: false
-          prerelease: false
-
-      - name: Upload Linux executable as asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_linux_release.outputs.upload_url }}
-          asset_path: ./dist/msa_app_linux
-          asset_name: msa_app_linux
-          asset_content_type: application/octet-stream
+          name: linux-artifact
+          path: ./dist/msa_app_linux
 
   build_mac:
     runs-on: macos-latest
@@ -77,26 +62,11 @@ jobs:
           poetry run pyinstaller msa_app/main.py --onefile --name msa_app_mac
           # Additional flags or configurations for macOS as needed
 
-      - name: Create macOS release
-        id: create_mac_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Archive macOS executable
+        uses: actions/upload-artifact@v2
         with:
-          tag_name: ${{ github.sha }}-mac
-          release_name: Release ${{ github.sha }} (macOS)
-          draft: false
-          prerelease: false
-
-      - name: Upload macOS executable as asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_mac_release.outputs.upload_url }}
-          asset_path: ./dist/msa_app_mac
-          asset_name: msa_app_mac
-          asset_content_type: application/octet-stream
+          name: mac-artifact
+          path: ./dist/msa_app_mac
 
   build_windows:
     runs-on: windows-2019
@@ -137,24 +107,63 @@ jobs:
         run: |
           poetry run pyinstaller msa_app/main.py --onefile --name msa_app_windows.exe
           # Additional flags or configurations for Windows as needed
+      - name: Archive Windows executable
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-artifact
+          path: ./dist/your_script_windows.exe
 
-      - name: Create Windows release
-        id: create_windows_release
+  create_release:
+    needs: [build_linux, build_mac, build_windows]
+
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: |
+            linux-artifact
+            mac-artifact
+            windows-artifact
+
+      - name: Create release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.sha }}-windows
-          release_name: Release ${{ github.sha }} (Windows)
+          tag_name: ${{ github.sha }}
+          release_name: Release ${{ github.sha }}
           draft: false
           prerelease: false
 
-      - name: Upload Windows executable as asset
+      - name: Upload artifacts as assets
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_windows_release.outputs.upload_url }}
-          asset_path: ./dist/msa_app_windows.exe
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./linux-artifact/msa_app_linux
+          asset_name: msa_app_linux
+          asset_content_type: application/octet-stream
+
+      - name: Upload macOS artifact as asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./mac-artifact/msa_app_mac
+          asset_name: msa_app_mac
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows artifact as asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./windows-artifact/msa_app_windows.exe
           asset_name: msa_app_windows.exe
           asset_content_type: application/octet-stream
