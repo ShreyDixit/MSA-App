@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.svm import SVC, SVR
-from scipy.stats import randint, norm, uniform
+from scipy.stats import randint, uniform
 import os
 import pandas as pd
 from collections import namedtuple
@@ -48,7 +48,7 @@ def prepare_data(path_to_data: str, y_column: str) -> Tuple[pd.DataFrame, pd.Ser
         raise RuntimeError("The data file specified is not CSV. Please use a CSV file instead")
     
     X = data.drop(y_column, axis=1)
-    mask = X > X.mean(0)
+    mask = X > X.median(0)
     X.where(mask, 1, inplace=True)
     X.where(~mask, 0, inplace=True)
     y = data[y_column]
@@ -61,7 +61,3 @@ def train_model(model_name : str, X: np.ndarray, y: np.ndarray, n_iter: int = 32
     opt = RandomizedSearchCV(model_collection.model_class(), model_collection.hyperparameters, cv=4, n_iter=200)
     opt.fit(X_train.values, y_train)
     return opt.score(X_test.values, y_test), opt
-
-
-
-    
