@@ -63,6 +63,7 @@ class GUI:
         print("Finished Running MSA")
         msa.save()
         print("Saving File")
+        msa.plot()
 
 class TextRedirector(object):
     def __init__(self, widget: ctk.CTkTextbox, tag="stdout"):
