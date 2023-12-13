@@ -3,8 +3,6 @@
 ## TODO:
 - Better Styling
 - Tests
-- Common Performance Metric
-- Shapley Value Plot
 - Different Parameters 
 - Use Accuracy and F1 P
 - Figure out how to deal with small dataset P

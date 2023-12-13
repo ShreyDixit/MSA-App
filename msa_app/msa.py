@@ -1,4 +1,5 @@
 import json
+from matplotlib import pyplot as plt
 
 from msapy import msa
 import numpy as np
@@ -50,3 +51,19 @@ class MSA:
             json.dump(save_dict, f, indent=4)
             
         self.shapley_table.shapley_values.to_csv("shapley_values.csv")
+
+    def plot(self):
+        # Calculate mean values and confidence intervals (CI) for error bars
+        mean_values = self.shapley_table.shapley_values
+        std_dev = self.shapley_table.std(axis=0)
+        sample_size = self.shapley_table.shape[0]
+        confidence_interval = 1.96 * (std_dev / (sample_size ** 0.5))  # 95% CI
+        bar_width = 0.8 / len(self.elements)
+
+        # Plotting bar graph with error bars
+        plt.figure(figsize=(10, int(len(self.elements) * 0.2)))
+        plt.barh(self.elements, mean_values, xerr=confidence_interval, capsize=5, color='skyblue', edgecolor='black')
+
+        plt.ylabel('Shapley Values') 
+        plt.xlabel('Brain Regions') 
+        plt.show()
