@@ -45,6 +45,7 @@ class MSA:
             "test accuracy": self.test_accuracy,
             "test f1": self.test_f1,
             "model used": self.model_name,
+            "model_params": self.trained_model.best_params_
         }
 
         with open("results.json", "w") as f:
