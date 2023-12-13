@@ -1,5 +1,6 @@
 from typing import Tuple
 import numpy as np
+from sklearn.metrics import accuracy_score, f1_score
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.svm import SVC, SVR
@@ -60,4 +61,5 @@ def train_model(model_name : str, X: np.ndarray, y: np.ndarray, n_iter: int = 32
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9)
     opt = RandomizedSearchCV(model_collection.model_class(), model_collection.hyperparameters, cv=4, n_iter=200)
     opt.fit(X_train.values, y_train)
-    return opt.score(X_test.values, y_test), opt
+    y_pred = np.rint(opt.predict(X_test.values))
+    return accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average="macro"), opt

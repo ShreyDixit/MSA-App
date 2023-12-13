@@ -13,16 +13,19 @@ class MSA:
         self.y_column = y_column
         self.model_name = model_name
         self.n_permutation = 1000
+        self.RoB = []
 
     def train_model(self):
-        test_accuracy, trained_model = ml_models.train_model(model_name=self.model_name, X=self.X, y=self.y)
+        test_accuracy, test_f1, trained_model = ml_models.train_model(model_name=self.model_name, X=self.X, y=self.y)
         self.test_accuracy = test_accuracy
+        self.test_f1 = test_f1
         self.trained_model = trained_model
 
     def prepare_data(self):
         X, y = ml_models.prepare_data(self.file_path, self.y_column)
         self.X = X
         self.y = y
+        self.elements = list(self.X.columns)
 
     def run_msa(self):
         self.shapley_table = msa.interface(n_permutations=self.n_permutation,
@@ -39,6 +42,7 @@ class MSA:
         save_dict = {
             "shapley_values": self.shapley_table.shapley_values.to_dict(),
             "test accuracy": self.test_accuracy,
+            "test f1": self.test_f1,
             "model used": self.model_name,
         }
 
