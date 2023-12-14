@@ -33,6 +33,11 @@ class MSA:
         self.shapley_table = msa.interface(n_permutations=self.n_permutation,
                                       elements=list(self.X.columns),
                                       objective_function=self.objective_function)
+        
+    def run_interaction_2d(self):
+        self.interactions = msa.network_interaction_2d(n_permutations=self.n_permutation,
+                                      elements=list(self.X.columns),
+                                      objective_function=self.objective_function)
 
     def objective_function(self, complement):
         x = pd.Series(np.zeros_like(self.X.iloc[0]), index = self.X.columns)
@@ -54,13 +59,12 @@ class MSA:
             
         self.shapley_table.shapley_values.to_csv("shapley_values.csv")
 
-    def plot(self):
+    def plot_msa(self):
         # Calculate mean values and confidence intervals (CI) for error bars
         mean_values = self.shapley_table.shapley_values
         std_dev = self.shapley_table.std(axis=0)
         sample_size = self.shapley_table.shape[0]
         confidence_interval = 1.96 * (std_dev / (sample_size ** 0.5))  # 95% CI
-        bar_width = 0.8 / len(self.elements)
 
         # Plotting bar graph with error bars
         plt.figure(figsize=(10, int(len(self.elements) * 0.2)))
@@ -68,4 +72,14 @@ class MSA:
 
         plt.ylabel('Shapley Values') 
         plt.xlabel('Brain Regions') 
+        plt.show()
+
+    def plot_network_interaction(self):
+        # Plotting the heatmap
+        plt.figure(figsize=(8, 6)) 
+        plt.imshow(self.interactions, cmap='viridis', interpolation='nearest') 
+        plt.xticks(np.arange(len(self.elements)), self.elements)
+        plt.yticks(np.arange(len(self.elements)), self.elements)
+        plt.colorbar()  # Display color bar
+        plt.title('Network Interactions') 
         plt.show()

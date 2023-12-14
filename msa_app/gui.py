@@ -43,18 +43,21 @@ class GUI:
         self.ml_model_combobox.grid(row=2, column=1, padx=10, sticky = "e")
 
         # Submit button
-        self.submit_button = ctk.CTkButton(self.root, text="Submit", command=self.submit_job)
-        self.submit_button.grid(row=3, column=0, columnspan=2, pady=10, sticky="ew")
+        self.msa_button = ctk.CTkButton(self.root, text="Run MSA", command=self.run_msa)
+        self.msa_button.grid(row=3, column=0, columnspan=2, pady=10, sticky="ew")
 
         self.text = ctk.CTkTextbox(self.root, height=100)
         self.text.grid(row=4, column=0, columnspan=2, pady=10, sticky="ew")
+
+        # self.interaction_2d_button = ctk.CTkButton(self.root, text="Run Network Interctions", command=self.run_network_interaction_2d)
+        # self.interaction_2d_button.grid(row=5, column=0, columnspan=2, pady=10, sticky="ew")
 
     def browse_file(self):
         file_path = filedialog.askopenfilename()
         if file_path:
             self.file_path.set(file_path)
 
-    def submit_job(self):
+    def run_msa(self):
         msa = MSA(self.file_path.get(), self.y_column.get(), self.y_column_type.get(), self.ml_model.get())
         msa.prepare_data()
         print("Prepared Data")
@@ -64,7 +67,17 @@ class GUI:
         print("Finished Running MSA")
         msa.save()
         print("Saving File")
-        msa.plot()
+        msa.plot_msa()
+
+    def run_network_interaction_2d(self):
+        msa = MSA(self.file_path.get(), self.y_column.get(), self.y_column_type.get(), self.ml_model.get())
+        msa.prepare_data()
+        print("Prepared Data")
+        msa.train_model()
+        print("Trained Model")
+        msa.run_interaction_2d()
+        print("Finished Running MSA")
+        msa.plot_network_interaction()
 
 class TextRedirector(object):
     def __init__(self, widget: ctk.CTkTextbox, tag="stdout"):
