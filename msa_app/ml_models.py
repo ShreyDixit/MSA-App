@@ -12,22 +12,27 @@ from collections import namedtuple
 Model_Collection = namedtuple("Model_Collection", "model_class hyperparameters")
 
 LinearRegressionParams = {
-    "fit_intercept": [True, False]
+    "fit_intercept": [True, False],
+    "positive": [True, False]
 }
 
 LogisticRegressionParams = {
     "penalty": ["l1", "l2", None],
-    "C": uniform(0.1, 10)
+    "C": uniform(0, 4)
 }
 
 SupportVectorClassifierParams = {
-    "kernel" : ['linear', 'poly', 'rbf', 'sigmoid'],
-    "degree" : randint(1, 7),
+    'kernel': ['sigmoid', 'linear', 'rbf', 'poly'],
+    'C': uniform(0.1, 10),
+    'gamma': ['scale', 'auto'],
+    'degree': randint(1, 10)
 }
 
 SupportVectorRegressionParams = {
-    "kernel" : ['linear', 'poly', 'rbf', 'sigmoid'],
-    "degree" : randint(1, 7),
+    'kernel': ['sigmoid', 'linear', 'rbf', 'poly'],
+    'C': uniform(0.1, 10),
+    'gamma': ['scale', 'auto'],
+    'degree': randint(1, 10)
 }
 
 models = {
@@ -37,7 +42,7 @@ models = {
     "Support Vector Classifier": Model_Collection(SVC, SupportVectorClassifierParams)
 }
 
-def prepare_data(path_to_data: str, y_column: str) -> Tuple[pd.DataFrame, pd.Series]:
+def prepare_data(path_to_data: str, y_column: str, y_column_type: str) -> Tuple[pd.DataFrame, pd.Series]:
     path_to_data = os.path.normpath(path_to_data)
     file_extension = os.path.splitext(path_to_data)[1]
 
@@ -53,6 +58,8 @@ def prepare_data(path_to_data: str, y_column: str) -> Tuple[pd.DataFrame, pd.Ser
     X.where(mask, 1, inplace=True)
     X.where(~mask, 0, inplace=True)
     y = data[y_column]
+
+    y = y.max() - y if y_column_type=="NIHSS Score" else y
 
     return X, y
 
