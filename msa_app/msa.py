@@ -9,9 +9,10 @@ from msa_app import ml_models
 
 
 class MSA:
-    def __init__(self, file_path: str, y_column: str, model_name: str):
+    def __init__(self, file_path: str, y_column: str, y_column_type: str, model_name: str):
         self.file_path = file_path
         self.y_column = y_column
+        self.y_column_type = y_column_type
         self.model_name = model_name
         self.n_permutation = 1000
         self.RoB = []
@@ -23,7 +24,7 @@ class MSA:
         self.trained_model = trained_model
 
     def prepare_data(self):
-        X, y = ml_models.prepare_data(self.file_path, self.y_column)
+        X, y = ml_models.prepare_data(self.file_path, self.y_column, self.y_column_type)
         self.X = X
         self.y = y
         self.elements = list(self.X.columns)

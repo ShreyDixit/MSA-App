@@ -7,5 +7,4 @@
 - Interaction Matrix (as a heatmap) (optional) P
 - Make an output folder for each trial
 - The Error Bar (95% Confidence Interval) (Bootstrapping) P
-- Ask Performance or Negative Performance. (max - x in case of negative) P
 - Add none ML model (Add a check) P

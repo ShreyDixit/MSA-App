@@ -27,7 +27,8 @@ class GUI:
         self.file_entry = ctk.CTkEntry(self.root, textvariable=self.file_path, state='readonly', width=200)
         self.file_entry.grid(row=0, column=1, padx=10, sticky = "e")
 
-        self.y_column_label = ctk.CTkLabel(self.root, text="y Column")
+        self.y_column_type = ctk.StringVar(value="NIHSS Score")
+        self.y_column_label = ctk.CTkComboBox(self.root, values= ["NIHSS Score", "Performance"], variable=self.y_column_type)
         self.y_column_label.grid(row=1, column=0, padx=10, pady=10, sticky = "w")
 
         self.y_column = ctk.StringVar()  # set initial value
@@ -54,7 +55,7 @@ class GUI:
             self.file_path.set(file_path)
 
     def submit_job(self):
-        msa = MSA(self.file_path.get(), self.y_column.get(), self.ml_model.get())
+        msa = MSA(self.file_path.get(), self.y_column.get(), self.y_column_type.get(), self.ml_model.get())
         msa.prepare_data()
         print("Prepared Data")
         msa.train_model()
