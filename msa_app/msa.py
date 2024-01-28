@@ -1,4 +1,5 @@
 import json
+import time
 from typing import Optional
 from matplotlib import pyplot as plt
 
@@ -11,6 +12,19 @@ from msa_app import ml_models
 
 class MSA:
     def __init__(self, data_file_path: str, y_column: str, y_column_type: str, model_name: str, voxels_file_path: Optional[str] = None):
+        """
+        Initializes the model with the given data file path, y column, y column type, model name, and optional voxels file path.
+
+        Parameters:
+            data_file_path (str): The path to the data file with data on ROI alterations.
+            y_column (str): The column representing the target  i.e. NIHSS Score or Performance.
+            y_column_type (str): Can have two values, either NIHSS or Performance.
+            model_name (str): The name of the model.
+            voxels_file_path (str, optional): The path to the voxels file, defaults to None.
+
+        Returns:
+            None
+        """
         self.data_file_path = data_file_path
         self.voxels_file_path = voxels_file_path
         self.y_column = y_column
@@ -20,6 +34,9 @@ class MSA:
         self.RoB = []
 
     def train_model(self):
+        """
+        Train the model using the specified model name, input features, and target labels.
+        """
         test_accuracy, test_f1, trained_model = ml_models.train_model(model_name=self.model_name, X=self.X, y=self.y)
         self.test_accuracy = test_accuracy
         self.test_f1 = test_f1
@@ -38,6 +55,12 @@ class MSA:
                                       objective_function=self.objective_function)
         
     def run_iterative_msa(self):
+        """
+        Run the iterative MSA algorithm.
+
+        This function iteratively runs the MSA algorithm until the number of elements
+        is reduced to 2 or less, or until the RoB contribution is no longer significant.
+        """
         while len(self.elements) > 2:
             self.run_msa()
             if self._is_significant("rob"):
@@ -84,8 +107,8 @@ class MSA:
             "model used": self.model_name,
             "model_params": self.trained_model.best_params_
         }
-
-        with open("results.json", "w") as f:
+        
+        with open(f"results_{time.strftime('%Y%m%d-%H%M%S')}.json", "w") as f:
             json.dump(save_dict, f, indent=4)
             
         self.shapley_table.shapley_values.to_csv("shapley_values.csv")
