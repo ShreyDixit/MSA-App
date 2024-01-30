@@ -37,9 +37,9 @@ class MSA:
         """
         Train the model using the specified model name, input features, and target labels.
         """
-        test_accuracy, test_f1, trained_model = ml_models.train_model(model_name=self.model_name, X=self.X, y=self.y)
-        self.test_accuracy = test_accuracy
-        self.test_f1 = test_f1
+        accuracy, f1, trained_model = ml_models.train_model(model_name=self.model_name, X=self.X, y=self.y)
+        self.accuracy = accuracy
+        self.f1 = f1
         self.trained_model = trained_model
 
     def prepare_data(self):
@@ -61,12 +61,17 @@ class MSA:
         This function iteratively runs the MSA algorithm until the number of elements
         is reduced to 2 or less, or until the RoB contribution is no longer significant.
         """
-        while len(self.elements) > 2:
-            self.run_msa()
-            if self._is_significant("rob"):
-                break
+        self.run_msa()
 
+        while len(self.elements) > 3:
             lowest_contributing_region = self._get_lowest_contributing_region()
+
+            if not self._is_significant("rob"):
+                self.shapley_table_iterative = self.shapley_table.copy()
+                self.accuracy_iterative = self.accuracy
+                self.f1_iterative = self.f1
+                self.trained_model_iterative = self.trained_model
+                self.RoB_iterative = self.RoB.copy()
             
             new_rob_num_voxels_altered = (self.X['rob'] * self.voxels['rob']) + (self.X[lowest_contributing_region] * self.voxels[lowest_contributing_region])
             self.voxels['rob'] += self.voxels[lowest_contributing_region]
@@ -77,12 +82,13 @@ class MSA:
             self.elements = list(self.X.columns)
             self.RoB.append(lowest_contributing_region)
             self.train_model()
+            self.run_msa()
 
 
     def _get_lowest_contributing_region(self):
         lowest_contributing_region = self.shapley_table.shapley_values.abs().idxmin()
         if lowest_contributing_region.lower() == "rob":
-             lowest_contributing_region = self.shapley_table.shapley_values.abs().argsort().iloc[1]
+             lowest_contributing_region = self.shapley_table.shapley_values.abs().sort_values().index[1]
         return lowest_contributing_region
 
             
@@ -98,31 +104,48 @@ class MSA:
             x[list(complement)] = 1
         return np.maximum(0, self.trained_model.predict(x.values.reshape(1, -1)))[0]
     
+    def save_iterative(self):
+        save_dict = {
+            "shapley_values_iterative": self.shapley_table_iterative.shapley_values.to_dict(),
+            "Rest of Breain": self.RoB_iterative,
+            "accuracy": self.accuracy_iterative,
+            "f1": self.f1_iterative,
+            "model used": self.model_name,
+            "model_params": self.trained_model_iterative.best_params_
+        }
+        
+        saving_time = time.strftime('%Y%m%d-%H%M%S')
+        with open(f"results_iterative_{saving_time}.json", "w") as f:
+            json.dump(save_dict, f, indent=4)
+            
+        self.shapley_table_iterative.shapley_values.to_csv(f"shapley_values_iterative_{saving_time}.csv")
+
     def save(self):
         save_dict = {
             "shapley_values": self.shapley_table.shapley_values.to_dict(),
-            "Rest of Breain": self.RoB,
-            "test accuracy": self.test_accuracy,
-            "test f1": self.test_f1,
+            "accuracy": self.accuracy,
+            "f1": self.f1,
             "model used": self.model_name,
             "model_params": self.trained_model.best_params_
         }
         
-        with open(f"results_{time.strftime('%Y%m%d-%H%M%S')}.json", "w") as f:
+        saving_time = time.strftime('%Y%m%d-%H%M%S')
+        with open(f"results_{saving_time}.json", "w") as f:
             json.dump(save_dict, f, indent=4)
             
-        self.shapley_table.shapley_values.to_csv("shapley_values.csv")
+        self.shapley_table.shapley_values.to_csv(f"shapley_values_{saving_time}.csv")
 
-    def plot_msa(self):
+    def plot_msa(self, iterative=False):
         # Calculate mean values and confidence intervals (CI) for error bars
-        mean_values = self.shapley_table.shapley_values
-        std_dev = self.shapley_table.std(axis=0)
-        sample_size = self.shapley_table.shape[0]
+        shapley_table = self.shapley_table_iterative if iterative else self.shapley_table
+        mean_values = shapley_table.shapley_values
+        std_dev = shapley_table.std(axis=0)
+        sample_size = shapley_table.shape[0]
         confidence_interval = 1.96 * (std_dev / (sample_size ** 0.5))  # 95% CI
 
         # Plotting bar graph with error bars
-        plt.figure(figsize=(10, int(len(self.elements) * 0.2)))
-        plt.barh(self.elements, mean_values, xerr=confidence_interval, capsize=5, color='skyblue', edgecolor='black')
+        plt.figure(figsize=(10, 10))
+        plt.barh(shapley_table.columns, mean_values, xerr=confidence_interval, capsize=5, color='skyblue', edgecolor='black')
 
         plt.xlabel('Shapley Values') 
         plt.ylabel('Brain Regions') 
