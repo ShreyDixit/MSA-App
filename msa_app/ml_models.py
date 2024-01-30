@@ -2,6 +2,8 @@ from typing import Optional, Tuple
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.svm import SVC, SVR
 from scipy.stats import randint, uniform
@@ -32,14 +34,32 @@ SupportVectorRegressionParams = {
     'kernel': ['sigmoid', 'linear', 'rbf', 'poly'],
     'C': uniform(0.1, 10),
     'gamma': ['scale', 'auto'],
-    'degree': randint(1, 10)
+    'degree': randint(1, 5)
+}
+
+DecisionTreeRegressorParams = {
+    'max_depth': [None] + list(range(1, 20)),
+    'min_samples_split': randint(2, 20),
+    'min_samples_leaf': randint(1, 20),
+    'max_features': ['sqrt', 'log2', None]
+}
+
+RandomForestRegressorParams = {
+    'n_estimators': randint(1, 100),
+    'max_features': ['sqrt', 'log2', None],
+    'max_depth': randint(1, 8),
+    'min_samples_split': randint(1, 10),
+    'min_samples_leaf': randint(1, 10),
+    'bootstrap': [True, False]
 }
 
 models = {
     "Linear Regression": Model_Collection(LinearRegression, LinearRegressionParams),
     "Logistic Regression": Model_Collection(LogisticRegression, LogisticRegressionParams),
     "Supper Vector Regressor": Model_Collection(SVR, SupportVectorRegressionParams),
-    "Support Vector Classifier": Model_Collection(SVC, SupportVectorClassifierParams)
+    "Support Vector Classifier": Model_Collection(SVC, SupportVectorClassifierParams),
+    "Decision Tree Regressor": Model_Collection(DecisionTreeRegressor, DecisionTreeRegressorParams),
+    "Random Forest Regressor": Model_Collection(RandomForestRegressor, RandomForestRegressorParams)
 }
 
 def prepare_data(data_file_path: str, y_column: str, y_column_type: str, voxels_file_path: Optional[str] = None) -> Tuple[pd.DataFrame, pd.Series, pd.Series]:
@@ -88,8 +108,7 @@ def process_path(data_file_path):
 
 def train_model(model_name : str, X: np.ndarray, y: np.ndarray, n_iter: int = 32):
     model_collection = models[model_name]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9)
-    opt = RandomizedSearchCV(model_collection.model_class(), model_collection.hyperparameters, cv=5, n_iter=400)
-    opt.fit(X_train.values, y_train)
-    y_pred = np.rint(opt.predict(X_test.values))
-    return accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average="macro"), opt
+    opt = RandomizedSearchCV(model_collection.model_class(), model_collection.hyperparameters, cv=4, n_iter=200)
+    opt.fit(X.values, y)
+    y_pred = np.rint(opt.predict(X.values))
+    return accuracy_score(y, y_pred), f1_score(y, y_pred, average="macro"), opt

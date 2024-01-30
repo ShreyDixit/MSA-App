@@ -77,17 +77,16 @@ class GUI:
     def run_msa(self):
         msa = MSA(self.data_file_path.get(), self.y_column.get(), self.y_column_type.get(), self.ml_model.get(), self.voxels_file_path.get())
         msa.prepare_data()
-        print("Prepared Data")
         msa.train_model()
-        print("Trained Model")
+
         if self.run_iterative_var.get():
             msa.run_iterative_msa()
+            msa.save_iterative()
         else:
             msa.run_msa()
-        print("Finished Running MSA")
-        msa.save()
-        print("Saving File")
-        msa.plot_msa()
+            msa.save()
+        
+        msa.plot_msa(bool(self.run_iterative_var.get()))
 
     def run_network_interaction_2d(self):
         msa = MSA(self.data_file_path.get(), self.y_column.get(), self.y_column_type.get(), self.ml_model.get())
