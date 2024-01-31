@@ -118,6 +118,8 @@ class GUI:
             self.y_column_type.get(),
             self.ml_model.get(),
             self.voxels_file_path.get(),
+            self.progress_bar,
+            self.root,
         )
         msa.prepare_data()
         msa.train_model()
