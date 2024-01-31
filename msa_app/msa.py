@@ -2,6 +2,7 @@ import json
 import time
 from typing import Optional
 from matplotlib import pyplot as plt
+import customtkinter as ctk
 
 from msapy import msa
 import numpy as np
@@ -18,6 +19,8 @@ class MSA:
         y_column_type: str,
         model_name: str,
         voxels_file_path: Optional[str] = None,
+        progress_bar: Optional[ctk.CTkProgressBar] = None,
+        root: Optional[ctk.CTk] = None,
     ):
         """
         Initializes the model with the given data file path, y column, y column type, model name, and optional voxels file path.
@@ -37,6 +40,8 @@ class MSA:
         self.y_column = y_column
         self.y_column_type = y_column_type
         self.model_name = model_name
+        self.progress_bar = progress_bar
+        self.root_gui = root
         self.n_permutation = 1000
         self.RoB = []
 
@@ -62,6 +67,7 @@ class MSA:
         self.y = y.copy()
         self.voxels = voxels.copy()
         self.elements = list(self.X.columns)
+        self.total_roi = len(self.elements)
 
     def run_msa(self):
         self.shapley_table = msa.interface(
@@ -77,7 +83,12 @@ class MSA:
         This function iteratively runs the MSA algorithm until the number of elements
         is reduced to 2 or less, or until the RoB contribution is no longer significant.
         """
+
+        self.root_gui.after(0, self.setup_progressbar)
+
         self.run_msa()
+
+        self.root_gui.after(0, self.update_progressbar)
 
         while len(self.elements) > 3:
             lowest_contributing_region = self._get_lowest_contributing_region()
@@ -102,6 +113,18 @@ class MSA:
             self.RoB.append(lowest_contributing_region)
             self.train_model()
             self.run_msa()
+            self.root_gui.after(0, self.update_progressbar)
+
+    def update_progressbar(self):
+        self.progress_bar.set(self.progress_bar.get() + 1 / (self.total_roi - 2))
+        self.root_gui.update_idletasks()
+
+    def setup_progressbar(self):
+        self.progress_bar.configure(
+            mode="determinate", determinate_speed=1 / (len(self.elements) - 2)
+        )
+        self.progress_bar.set(0)
+        self.root_gui.update_idletasks()
 
     def _get_lowest_contributing_region(self):
         lowest_contributing_region = self.shapley_table.shapley_values.abs().idxmin()
@@ -197,36 +220,3 @@ class MSA:
             abs(self.shapley_table[brain_region].mean())
             > self.shapley_table[brain_region].std()
         )
-
-
-# X, y = get_training_data()
-
-# RoB = []
-
-# 60 ROI
-# ..... 40 ROI and average (20 ROB)
-
-# 2 ROI and 1 ROB
-# And see where the RoB became significant
-
-# while <condition>:
-#     model = train_model(X, y)
-#     shapley_values = MSA(model)
-#     least_important_ROI = argmin(absolute(shapley_values))
-#     if shapley_values[least_important_ROI] < std_err(shapley_values[least_important_ROI]):
-#         X.remove(least_important_ROI)
-#         RoB.append(least_important_ROI)
-#     else:
-#         break
-
-
-# while <condition>
-#     model = train_model(X, y)
-#     shapley_values = MSA(model)
-#     least_important_ROI = argmin(absolute(shapley_values))
-
-
-# numVoxelA, numVoxelB
-# percentageAltA, percentageAltB
-
-# percentageAltAB = (percentageAltA * numVoxelA + percentageAltB * numVoxelB) / (numVoxelA + numbVoxelB)
