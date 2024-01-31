@@ -10,8 +10,8 @@ ctk.set_default_color_theme("dark-blue")
 class GUI:
     def __init__(self, root: ctk.CTk):
         self.root = root
-        self.root.geometry("900x400")
-        self.root.title()
+        self.root.geometry("600x600")
+        self.root.title("Lesion-Symptom Mapping using MSA")
         self.data_file_path = ctk.StringVar()
         self.voxels_file_path = ctk.StringVar()
         self.create_widget()
@@ -27,7 +27,11 @@ class GUI:
 
         # Entry widget to display the file path
         self.data_file_entry = ctk.CTkEntry(
-            self.root, textvariable=self.data_file_path, state="readonly", width=200
+            self.root,
+            textvariable=self.data_file_path,
+            state="readonly",
+            width=200,
+            font=("Helvetica", 18),
         )
         self.data_file_entry.grid(row=0, column=1, padx=10, sticky="e")
 
@@ -35,12 +39,17 @@ class GUI:
             self.root,
             text="Upload Voxels File (Optional)",
             command=self.browse_voxels_file,
+            font=("Helvetica", 18),
         )
         self.browse_button_voxels_file.grid(row=1, column=0, pady=20, sticky="w")
 
         # Entry widget to display the file path
         self.voxels_file_entry = ctk.CTkEntry(
-            self.root, textvariable=self.voxels_file_path, state="readonly", width=200
+            self.root,
+            textvariable=self.voxels_file_path,
+            state="readonly",
+            width=200,
+            font=("Helvetica", 18),
         )
         self.voxels_file_entry.grid(row=1, column=1, padx=10, sticky="e")
 
@@ -49,14 +58,19 @@ class GUI:
             self.root,
             values=["NIHSS Score", "Performance"],
             variable=self.y_column_type,
+            font=("Helvetica", 18),
         )
         self.y_column_label.grid(row=2, column=0, padx=10, pady=10, sticky="w")
 
         self.y_column = ctk.StringVar()  # set initial value
-        self.y_column_entry = ctk.CTkEntry(self.root, textvariable=self.y_column)
+        self.y_column_entry = ctk.CTkEntry(
+            self.root, textvariable=self.y_column, font=("Helvetica", 18)
+        )
         self.y_column_entry.grid(row=2, column=1, padx=10, pady=10, sticky="e")
 
-        self.ml_model_label = ctk.CTkLabel(self.root, text="Machine Learning Model: ")
+        self.ml_model_label = ctk.CTkLabel(
+            self.root, text="Machine Learning Model: ", font=("Helvetica", 18)
+        )
         self.ml_model_label.grid(row=3, column=0, padx=10, sticky="w")
 
         self.ml_model = ctk.StringVar()  # set initial value
@@ -65,12 +79,16 @@ class GUI:
             values=list(ml_models.models.keys()),
             variable=self.ml_model,
             width=200,
+            font=("Helvetica", 18),
         )
         self.ml_model_combobox.grid(row=3, column=1, padx=10, sticky="e")
 
         self.run_iterative_var = ctk.IntVar()
         self.run_iterative_checkbox = ctk.CTkCheckBox(
-            self.root, text="Run Iterative", variable=self.run_iterative_var
+            self.root,
+            text="Run Iterative",
+            variable=self.run_iterative_var,
+            font=("Helvetica", 18),
         )
         self.run_iterative_checkbox.grid(
             row=4, column=0, columnspan=2, pady=10, padx=10, sticky="ew"
@@ -78,7 +96,10 @@ class GUI:
 
         # Submit button
         self.msa_button = ctk.CTkButton(
-            self.root, text="Run MSA", command=self.click_run_button
+            self.root,
+            text="Run MSA",
+            command=self.click_run_button,
+            font=("Helvetica", 18),
         )
         self.msa_button.grid(
             row=5, column=0, columnspan=2, pady=10, padx=10, sticky="ew"
@@ -89,7 +110,7 @@ class GUI:
             row=6, column=0, columnspan=2, pady=10, padx=10, sticky="ew"
         )
 
-        self.text = ctk.CTkTextbox(self.root, height=100)
+        self.text = ctk.CTkTextbox(self.root, height=150, font=("Helvetica", 18))
         self.text.grid(row=7, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
 
         # self.interaction_2d_button = ctk.CTkButton(self.root, text="Run Network Interctions", command=self.run_network_interaction_2d)
