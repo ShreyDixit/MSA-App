@@ -11,7 +11,14 @@ from msa_app import ml_models
 
 
 class MSA:
-    def __init__(self, data_file_path: str, y_column: str, y_column_type: str, model_name: str, voxels_file_path: Optional[str] = None):
+    def __init__(
+        self,
+        data_file_path: str,
+        y_column: str,
+        y_column_type: str,
+        model_name: str,
+        voxels_file_path: Optional[str] = None,
+    ):
         """
         Initializes the model with the given data file path, y column, y column type, model name, and optional voxels file path.
 
@@ -37,23 +44,32 @@ class MSA:
         """
         Train the model using the specified model name, input features, and target labels.
         """
-        accuracy, f1, trained_model = ml_models.train_model(model_name=self.model_name, X=self.X, y=self.y)
+        accuracy, f1, trained_model = ml_models.train_model(
+            model_name=self.model_name, X=self.X, y=self.y
+        )
         self.accuracy = accuracy
         self.f1 = f1
         self.trained_model = trained_model
 
     def prepare_data(self):
-        X, y, voxels = ml_models.prepare_data(self.data_file_path, self.y_column, self.y_column_type, self.voxels_file_path)
+        X, y, voxels = ml_models.prepare_data(
+            self.data_file_path,
+            self.y_column,
+            self.y_column_type,
+            self.voxels_file_path,
+        )
         self.X = X.copy()
         self.y = y.copy()
         self.voxels = voxels.copy()
         self.elements = list(self.X.columns)
 
     def run_msa(self):
-        self.shapley_table = msa.interface(n_permutations=self.n_permutation,
-                                      elements=list(self.X.columns),
-                                      objective_function=self.objective_function)
-        
+        self.shapley_table = msa.interface(
+            n_permutations=self.n_permutation,
+            elements=list(self.X.columns),
+            objective_function=self.objective_function,
+        )
+
     def run_iterative_msa(self):
         """
         Run the iterative MSA algorithm.
@@ -72,10 +88,13 @@ class MSA:
                 self.f1_iterative = self.f1
                 self.trained_model_iterative = self.trained_model
                 self.RoB_iterative = self.RoB.copy()
-            
-            new_rob_num_voxels_altered = (self.X['rob'] * self.voxels['rob']) + (self.X[lowest_contributing_region] * self.voxels[lowest_contributing_region])
-            self.voxels['rob'] += self.voxels[lowest_contributing_region]
-            self.X['rob'] = new_rob_num_voxels_altered / self.voxels['rob']
+
+            new_rob_num_voxels_altered = (self.X["rob"] * self.voxels["rob"]) + (
+                self.X[lowest_contributing_region]
+                * self.voxels[lowest_contributing_region]
+            )
+            self.voxels["rob"] += self.voxels[lowest_contributing_region]
+            self.X["rob"] = new_rob_num_voxels_altered / self.voxels["rob"]
 
             self.voxels.drop(lowest_contributing_region, inplace=True)
             self.X.drop(lowest_contributing_region, axis=1, inplace=True)
@@ -84,26 +103,27 @@ class MSA:
             self.train_model()
             self.run_msa()
 
-
     def _get_lowest_contributing_region(self):
         lowest_contributing_region = self.shapley_table.shapley_values.abs().idxmin()
         if lowest_contributing_region.lower() == "rob":
-             lowest_contributing_region = self.shapley_table.shapley_values.abs().sort_values().index[1]
+            lowest_contributing_region = (
+                self.shapley_table.shapley_values.abs().sort_values().index[1]
+            )
         return lowest_contributing_region
 
-            
-        
     def run_interaction_2d(self):
-        self.interactions = msa.network_interaction_2d(n_permutations=self.n_permutation,
-                                      elements=list(self.X.columns),
-                                      objective_function=self.objective_function)
+        self.interactions = msa.network_interaction_2d(
+            n_permutations=self.n_permutation,
+            elements=list(self.X.columns),
+            objective_function=self.objective_function,
+        )
 
     def objective_function(self, complement):
-        x = pd.Series(np.zeros_like(self.X.iloc[0]), index = self.X.columns)
+        x = pd.Series(np.zeros_like(self.X.iloc[0]), index=self.X.columns)
         if complement:
             x[list(complement)] = 1
         return np.maximum(0, self.trained_model.predict(x.values.reshape(1, -1)))[0]
-    
+
     def save_iterative(self):
         save_dict = {
             "shapley_values_iterative": self.shapley_table_iterative.shapley_values.to_dict(),
@@ -111,14 +131,16 @@ class MSA:
             "accuracy": self.accuracy_iterative,
             "f1": self.f1_iterative,
             "model used": self.model_name,
-            "model_params": self.trained_model_iterative.best_params_
+            "model_params": self.trained_model_iterative.best_params_,
         }
-        
-        saving_time = time.strftime('%Y%m%d-%H%M%S')
+
+        saving_time = time.strftime("%Y%m%d-%H%M%S")
         with open(f"results_iterative_{saving_time}.json", "w") as f:
             json.dump(save_dict, f, indent=4)
-            
-        self.shapley_table_iterative.shapley_values.to_csv(f"shapley_values_iterative_{saving_time}.csv")
+
+        self.shapley_table_iterative.shapley_values.to_csv(
+            f"shapley_values_iterative_{saving_time}.csv"
+        )
 
     def save(self):
         save_dict = {
@@ -126,46 +148,55 @@ class MSA:
             "accuracy": self.accuracy,
             "f1": self.f1,
             "model used": self.model_name,
-            "model_params": self.trained_model.best_params_
+            "model_params": self.trained_model.best_params_,
         }
-        
-        saving_time = time.strftime('%Y%m%d-%H%M%S')
+
+        saving_time = time.strftime("%Y%m%d-%H%M%S")
         with open(f"results_{saving_time}.json", "w") as f:
             json.dump(save_dict, f, indent=4)
-            
+
         self.shapley_table.shapley_values.to_csv(f"shapley_values_{saving_time}.csv")
 
     def plot_msa(self, iterative=False):
         # Calculate mean values and confidence intervals (CI) for error bars
-        shapley_table = self.shapley_table_iterative if iterative else self.shapley_table
+        shapley_table = (
+            self.shapley_table_iterative if iterative else self.shapley_table
+        )
         mean_values = shapley_table.shapley_values
         std_dev = shapley_table.std(axis=0)
         sample_size = shapley_table.shape[0]
-        confidence_interval = 1.96 * (std_dev / (sample_size ** 0.5))  # 95% CI
+        confidence_interval = 1.96 * (std_dev / (sample_size**0.5))  # 95% CI
 
         # Plotting bar graph with error bars
         plt.figure(figsize=(10, 10))
-        plt.barh(shapley_table.columns, mean_values, xerr=confidence_interval, capsize=5, color='skyblue', edgecolor='black')
+        plt.barh(
+            shapley_table.columns,
+            mean_values,
+            xerr=confidence_interval,
+            capsize=5,
+            color="skyblue",
+            edgecolor="black",
+        )
 
-        plt.xlabel('Shapley Values') 
-        plt.ylabel('Brain Regions') 
+        plt.xlabel("Shapley Values")
+        plt.ylabel("Brain Regions")
         plt.show()
 
     def plot_network_interaction(self):
         # Plotting the heatmap
-        plt.figure(figsize=(8, 6)) 
-        plt.imshow(self.interactions, cmap='viridis', interpolation='nearest') 
+        plt.figure(figsize=(8, 6))
+        plt.imshow(self.interactions, cmap="viridis", interpolation="nearest")
         plt.xticks(np.arange(len(self.elements)), self.elements)
         plt.yticks(np.arange(len(self.elements)), self.elements)
         plt.colorbar()  # Display color bar
-        plt.title('Network Interactions') 
+        plt.title("Network Interactions")
         plt.show()
 
     def _is_significant(self, brain_region: str) -> bool:
-        return abs(self.shapley_table[brain_region].mean()) > self.shapley_table[brain_region].std()
-
-
-
+        return (
+            abs(self.shapley_table[brain_region].mean())
+            > self.shapley_table[brain_region].std()
+        )
 
 
 # X, y = get_training_data()
@@ -199,4 +230,3 @@ class MSA:
 # percentageAltA, percentageAltB
 
 # percentageAltAB = (percentageAltA * numVoxelA + percentageAltB * numVoxelB) / (numVoxelA + numbVoxelB)
-

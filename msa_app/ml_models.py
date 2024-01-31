@@ -13,56 +13,62 @@ from collections import namedtuple
 
 Model_Collection = namedtuple("Model_Collection", "model_class hyperparameters")
 
-LinearRegressionParams = {
-    "fit_intercept": [True, False],
-    "positive": [True, False]
-}
+LinearRegressionParams = {"fit_intercept": [True, False], "positive": [True, False]}
 
-LogisticRegressionParams = {
-    "penalty": ["l1", "l2", None],
-    "C": uniform(0, 4)
-}
+LogisticRegressionParams = {"penalty": ["l1", "l2", None], "C": uniform(0, 4)}
 
 SupportVectorClassifierParams = {
-    'kernel': ['sigmoid', 'linear', 'rbf', 'poly'],
-    'C': uniform(0.1, 10),
-    'gamma': ['scale', 'auto'],
-    'degree': randint(1, 10)
+    "kernel": ["sigmoid", "linear", "rbf", "poly"],
+    "C": uniform(0.1, 10),
+    "gamma": ["scale", "auto"],
+    "degree": randint(1, 10),
 }
 
 SupportVectorRegressionParams = {
-    'kernel': ['sigmoid', 'linear', 'rbf', 'poly'],
-    'C': uniform(0.1, 10),
-    'gamma': ['scale', 'auto'],
-    'degree': randint(1, 5)
+    "kernel": ["sigmoid", "linear", "rbf", "poly"],
+    "C": uniform(0.1, 10),
+    "gamma": ["scale", "auto"],
+    "degree": randint(1, 5),
 }
 
 DecisionTreeRegressorParams = {
-    'max_depth': [None] + list(range(1, 20)),
-    'min_samples_split': randint(2, 20),
-    'min_samples_leaf': randint(1, 20),
-    'max_features': ['sqrt', 'log2', None]
+    "max_depth": [None] + list(range(1, 20)),
+    "min_samples_split": randint(2, 20),
+    "min_samples_leaf": randint(1, 20),
+    "max_features": ["sqrt", "log2", None],
 }
 
 RandomForestRegressorParams = {
-    'n_estimators': randint(1, 100),
-    'max_features': ['sqrt', 'log2', None],
-    'max_depth': randint(1, 8),
-    'min_samples_split': randint(1, 10),
-    'min_samples_leaf': randint(1, 10),
-    'bootstrap': [True, False]
+    "n_estimators": randint(1, 100),
+    "max_features": ["sqrt", "log2", None],
+    "max_depth": randint(1, 8),
+    "min_samples_split": randint(1, 10),
+    "min_samples_leaf": randint(1, 10),
+    "bootstrap": [True, False],
 }
 
 models = {
     "Linear Regression": Model_Collection(LinearRegression, LinearRegressionParams),
-    "Logistic Regression": Model_Collection(LogisticRegression, LogisticRegressionParams),
+    "Logistic Regression": Model_Collection(
+        LogisticRegression, LogisticRegressionParams
+    ),
     "Supper Vector Regressor": Model_Collection(SVR, SupportVectorRegressionParams),
     "Support Vector Classifier": Model_Collection(SVC, SupportVectorClassifierParams),
-    "Decision Tree Regressor": Model_Collection(DecisionTreeRegressor, DecisionTreeRegressorParams),
-    "Random Forest Regressor": Model_Collection(RandomForestRegressor, RandomForestRegressorParams)
+    "Decision Tree Regressor": Model_Collection(
+        DecisionTreeRegressor, DecisionTreeRegressorParams
+    ),
+    "Random Forest Regressor": Model_Collection(
+        RandomForestRegressor, RandomForestRegressorParams
+    ),
 }
 
-def prepare_data(data_file_path: str, y_column: str, y_column_type: str, voxels_file_path: Optional[str] = None) -> Tuple[pd.DataFrame, pd.Series, pd.Series]:
+
+def prepare_data(
+    data_file_path: str,
+    y_column: str,
+    y_column_type: str,
+    voxels_file_path: Optional[str] = None,
+) -> Tuple[pd.DataFrame, pd.Series, pd.Series]:
     data_file_path, data_file_extension = process_path(data_file_path)
 
     if data_file_extension == ".csv":
@@ -70,7 +76,6 @@ def prepare_data(data_file_path: str, y_column: str, y_column_type: str, voxels_
     else:
         data = pd.read_excel(data_file_path)
 
-    
     X = data.drop(y_column, axis=1)
 
     if voxels_file_path:
@@ -81,34 +86,44 @@ def prepare_data(data_file_path: str, y_column: str, y_column_type: str, voxels_
             voxels = pd.read_excel(voxels_file_path, header=None)
         voxels = pd.Series(voxels[1].values, index=voxels[0])
 
-        assert set(X.columns) == set(voxels.index), "Brain Regions in Datafile are different from brain regions in Voxel file"
+        assert set(X.columns) == set(
+            voxels.index
+        ), "Brain Regions in Datafile are different from brain regions in Voxel file"
     else:
         voxels = pd.Series(np.ones(len(X.columns)), index=X.columns)
 
-
-    if 'rob' not in X.columns.str.lower():
-        X['rob'] = 0
-        voxels['rob'] = 0
+    if "rob" not in X.columns.str.lower():
+        X["rob"] = 0
+        voxels["rob"] = 0
 
     mask = X > X.median(0)
     X.where(mask, 1, inplace=True)
     X.where(~mask, 0, inplace=True)
     y = data[y_column]
 
-    y = y.max() - y if y_column_type=="NIHSS Score" else y
+    y = y.max() - y if y_column_type == "NIHSS Score" else y
 
     return X, y, voxels
+
 
 def process_path(data_file_path):
     data_file_path = os.path.normpath(data_file_path)
     data_file_extension = os.path.splitext(data_file_path)[1]
     if data_file_extension not in (".csv", ".xlsx"):
-        raise RuntimeError("The file specified is not CSV or xlsx. Please use a CSV or xlsx file instead")
-    return data_file_path,data_file_extension
+        raise RuntimeError(
+            "The file specified is not CSV or xlsx. Please use a CSV or xlsx file instead"
+        )
+    return data_file_path, data_file_extension
 
-def train_model(model_name : str, X: np.ndarray, y: np.ndarray, n_iter: int = 32):
+
+def train_model(model_name: str, X: np.ndarray, y: np.ndarray, n_iter: int = 32):
     model_collection = models[model_name]
-    opt = RandomizedSearchCV(model_collection.model_class(), model_collection.hyperparameters, cv=4, n_iter=200)
+    opt = RandomizedSearchCV(
+        model_collection.model_class(),
+        model_collection.hyperparameters,
+        cv=4,
+        n_iter=200,
+    )
     opt.fit(X.values, y)
     y_pred = np.rint(opt.predict(X.values))
     return accuracy_score(y, y_pred), f1_score(y, y_pred, average="macro"), opt
