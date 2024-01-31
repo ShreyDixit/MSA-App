@@ -23,7 +23,7 @@ class GUI:
         self.browse_button_data_file = ctk.CTkButton(
             self.root, text="Upload Data File", command=self.browse_data_file
         )
-        self.browse_button_data_file.grid(row=0, column=0, pady=20, sticky="w")
+        self.browse_button_data_file.grid(row=0, column=0, pady=20, padx=10, sticky="w")
 
         # Entry widget to display the file path
         self.data_file_entry = ctk.CTkEntry(
@@ -41,7 +41,9 @@ class GUI:
             command=self.browse_voxels_file,
             font=("Helvetica", 18),
         )
-        self.browse_button_voxels_file.grid(row=1, column=0, pady=20, sticky="w")
+        self.browse_button_voxels_file.grid(
+            row=1, column=0, pady=20, padx=10, sticky="w"
+        )
 
         # Entry widget to display the file path
         self.voxels_file_entry = ctk.CTkEntry(
@@ -105,12 +107,25 @@ class GUI:
             row=5, column=0, columnspan=2, pady=10, padx=10, sticky="ew"
         )
 
-        self.progress_bar = ctk.CTkProgressBar(self.root)
+        self.progress_bar = ctk.CTkProgressBar(self.root, mode="indeterminate")
         self.progress_bar.grid(
             row=6, column=0, columnspan=2, pady=10, padx=10, sticky="ew"
         )
 
-        self.text = ctk.CTkTextbox(self.root, height=150, font=("Helvetica", 18))
+        self.text = ctk.CTkTextbox(
+            self.root,
+            height=150,
+            border_width=4,
+            border_color="#003660",
+            border_spacing=10,
+            fg_color="silver",
+            text_color="black",
+            font=("Helvetica", 18),
+            wrap="word",  # Char default, word, none
+            activate_scrollbars=True,
+            scrollbar_button_color="blue",
+            scrollbar_button_hover_color="red",
+        )
         self.text.grid(row=7, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
 
         # self.interaction_2d_button = ctk.CTkButton(self.root, text="Run Network Interctions", command=self.run_network_interaction_2d)
@@ -133,6 +148,7 @@ class GUI:
         threading.Thread(target=self.run_msa, daemon=True).start()
 
     def run_msa(self):
+        self.text.insert("end", "Running MSA\n")
         msa = MSA(
             self.data_file_path.get(),
             self.y_column.get(),
@@ -143,15 +159,21 @@ class GUI:
             self.root,
         )
         msa.prepare_data()
+        self.text.insert("end", "Prepared Data\n")
+
         msa.train_model()
 
         if self.run_iterative_var.get():
             msa.run_iterative_msa()
+            self.text.insert("end", "Finished Running Iterative MSA")
             msa.save_iterative()
         else:
             msa.run_msa()
             self.progress_bar.stop()
+            self.text.insert("end", "Finished Running MSA")
             msa.save()
+
+        self.text.insert("end", "Saved Results")
 
         msa.plot_msa(bool(self.run_iterative_var.get()))
 
