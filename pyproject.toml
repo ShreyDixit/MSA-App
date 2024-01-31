@@ -2,7 +2,7 @@
 name = "msa-app"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Shrey Dixit <shrey.akshaj@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
