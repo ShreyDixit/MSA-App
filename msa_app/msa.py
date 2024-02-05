@@ -63,7 +63,8 @@ class MSA:
             self.y_column_type,
             self.voxels_file_path,
         )
-        self.X = X.copy()
+        self.X_unbinorized = X.copy()
+        self.X = ml_models.binarize_data(X)
         self.y = y.copy()
         self.voxels = voxels.copy()
         self.elements = list(self.X.columns)
@@ -100,15 +101,15 @@ class MSA:
                 self.trained_model_iterative = self.trained_model
                 self.RoB_iterative = self.RoB.copy()
 
-            new_rob_num_voxels_altered = (self.X["rob"] * self.voxels["rob"]) + (
-                self.X[lowest_contributing_region]
-                * self.voxels[lowest_contributing_region]
+            new_rob_num_voxels_altered = (self.X_unbinorized["rob"] * self.voxels["rob"]) + (
+                self.X_unbinorized[lowest_contributing_region] * self.voxels[lowest_contributing_region]
             )
             self.voxels["rob"] += self.voxels[lowest_contributing_region]
-            self.X["rob"] = new_rob_num_voxels_altered / self.voxels["rob"]
+            self.X_unbinorized["rob"] = new_rob_num_voxels_altered / self.voxels["rob"]
 
             self.voxels.drop(lowest_contributing_region, inplace=True)
-            self.X.drop(lowest_contributing_region, axis=1, inplace=True)
+            self.X_unbinorized.drop(lowest_contributing_region, axis=1, inplace=True)
+            self.X = ml_models.binarize_data(self.X_unbinorized)
             self.elements = list(self.X.columns)
             self.RoB.append(lowest_contributing_region)
             self.train_model()

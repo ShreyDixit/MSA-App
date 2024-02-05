@@ -96,14 +96,17 @@ def prepare_data(
         X["rob"] = 0
         voxels["rob"] = 0
 
-    mask = X > X.median(0)
-    X.where(mask, 1, inplace=True)
-    X.where(~mask, 0, inplace=True)
     y = data[y_column]
 
     y = y.max() - y if y_column_type == "NIHSS Score" else y
 
     return X, y, voxels
+
+def binarize_data(X: np.ndarray):
+    mask = X > X.median(0)
+    X = X.where(mask, 1)
+    X = X.where(~mask, 0)
+    return X
 
 
 def process_path(data_file_path):
