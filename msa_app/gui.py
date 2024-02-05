@@ -21,7 +21,7 @@ class GUI:
         self.root.grid_columnconfigure((0, 1), weight=1)
 
         self.browse_button_data_file = ctk.CTkButton(
-            self.root, text="Upload Data File", command=self.browse_data_file
+            self.root, text="Upload Data File", command=self.browse_data_file, font=("Helvetica", 18)
         )
         self.browse_button_data_file.grid(row=0, column=0, pady=20, padx=10, sticky="w")
 
@@ -62,13 +62,13 @@ class GUI:
             variable=self.y_column_type,
             font=("Helvetica", 18),
         )
-        self.y_column_label.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        self.y_column_label.grid(row=2, column=0, padx=10, pady=20, sticky="w")
 
         self.y_column = ctk.StringVar()  # set initial value
         self.y_column_entry = ctk.CTkEntry(
             self.root, textvariable=self.y_column, font=("Helvetica", 18)
         )
-        self.y_column_entry.grid(row=2, column=1, padx=10, pady=10, sticky="e")
+        self.y_column_entry.grid(row=2, column=1, padx=10, pady=20, sticky="e")
 
         self.ml_model_label = ctk.CTkLabel(
             self.root, text="Machine Learning Model: ", font=("Helvetica", 18)
@@ -93,7 +93,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.run_iterative_checkbox.grid(
-            row=4, column=0, columnspan=2, pady=10, padx=10, sticky="ew"
+            row=4, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
         # Submit button
@@ -104,12 +104,12 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.msa_button.grid(
-            row=5, column=0, columnspan=2, pady=10, padx=10, sticky="ew"
+            row=5, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
         self.progress_bar = ctk.CTkProgressBar(self.root, mode="indeterminate")
         self.progress_bar.grid(
-            row=6, column=0, columnspan=2, pady=10, padx=10, sticky="ew"
+            row=6, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
         self.text = ctk.CTkTextbox(
@@ -126,7 +126,7 @@ class GUI:
             scrollbar_button_color="blue",
             scrollbar_button_hover_color="red",
         )
-        self.text.grid(row=7, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
+        self.text.grid(row=7, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
 
         # self.interaction_2d_button = ctk.CTkButton(self.root, text="Run Network Interctions", command=self.run_network_interaction_2d)
         # self.interaction_2d_button.grid(row=5, column=0, columnspan=2, pady=10, sticky="ew")
