@@ -1,5 +1,6 @@
 from typing import Optional, Tuple
 import numpy as np
+import numpy.typing as npt
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.tree import DecisionTreeRegressor
@@ -102,7 +103,8 @@ def prepare_data(
 
     return X, y, voxels
 
-def binarize_data(X: np.ndarray):
+
+def binarize_data(X: npt.NDArray):
     mask = X > X.median(0)
     X = X.where(mask, 1)
     X = X.where(~mask, 0)
@@ -119,7 +121,7 @@ def process_path(data_file_path):
     return data_file_path, data_file_extension
 
 
-def train_model(model_name: str, X: np.ndarray, y: np.ndarray, n_iter: int = 32):
+def train_model(model_name: str, X: npt.NDArray, y: npt.NDArray, n_iter: int = 32):
     model_collection = models[model_name]
     opt = RandomizedSearchCV(
         model_collection.model_class(),
