@@ -186,6 +186,7 @@ class GUI:
             self.progress_bar,
             self.root,
             bool(self.binarize_data_var.get()),
+            bool(self.run_network_interaction_2d_var.get()),
         )
         msa.prepare_data()
         self.text.insert("end", "Prepared Data\n")
