@@ -21,7 +21,10 @@ class GUI:
         self.root.grid_columnconfigure((0, 1), weight=1)
 
         self.browse_button_data_file = ctk.CTkButton(
-            self.root, text="Upload Data File", command=self.browse_data_file, font=("Helvetica", 18)
+            self.root,
+            text="Upload Data File",
+            command=self.browse_data_file,
+            font=("Helvetica", 18),
         )
         self.browse_button_data_file.grid(row=0, column=0, pady=20, padx=10, sticky="w")
 
@@ -86,14 +89,29 @@ class GUI:
         self.ml_model_combobox.grid(row=3, column=1, padx=10, sticky="e")
 
         self.run_iterative_var = ctk.IntVar()
-        self.run_iterative_checkbox = ctk.CTkCheckBox(
+        self.run_iterative_checkbox = ctk.CTkSwitch(
             self.root,
+            onvalue=1,
+            offvalue=0,
             text="Run Iterative",
             variable=self.run_iterative_var,
             font=("Helvetica", 18),
         )
         self.run_iterative_checkbox.grid(
-            row=4, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=4, column=0, columnspan=1, pady=20, padx=10, sticky="ew"
+        )
+
+        self.run_network_interaction_2d_var = ctk.IntVar()
+        self.run_network_interaction_2d_checkbox = ctk.CTkSwitch(
+            self.root,
+            onvalue=1,
+            offvalue=0,
+            text="Run Network Interaction",
+            variable=self.run_network_interaction_2d_var,
+            font=("Helvetica", 18),
+        )
+        self.run_network_interaction_2d_checkbox.grid(
+            row=4, column=1, columnspan=1, pady=20, padx=10, sticky="ew"
         )
 
         # Submit button
@@ -127,9 +145,6 @@ class GUI:
             scrollbar_button_hover_color="red",
         )
         self.text.grid(row=7, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
-
-        # self.interaction_2d_button = ctk.CTkButton(self.root, text="Run Network Interctions", command=self.run_network_interaction_2d)
-        # self.interaction_2d_button.grid(row=5, column=0, columnspan=2, pady=10, sticky="ew")
 
     def browse_data_file(self):
         file_path = filedialog.askopenfilename()
@@ -165,26 +180,19 @@ class GUI:
 
         if self.run_iterative_var.get():
             msa.run_iterative_msa()
-            self.text.insert("end", "Finished Running Iterative MSA")
+            self.text.insert("end", "Finished Running Iterative MSA\n")
             msa.save_iterative()
         else:
             msa.run_msa()
             self.progress_bar.stop()
-            self.text.insert("end", "Finished Running MSA")
+            self.text.insert("end", "Finished Running MSA\n")
             msa.save()
+
+        if self.run_network_interaction_2d_var.get():
+            msa.run_interaction_2d()
+            msa.plot_network_interaction()
+            self.text.insert("end", "Finished Running Network Interaction\n")
 
         self.text.insert("end", "Saved Results")
 
         msa.plot_msa(bool(self.run_iterative_var.get()))
-
-    def run_network_interaction_2d(self):
-        msa = MSA(
-            self.data_file_path.get(),
-            self.y_column.get(),
-            self.y_column_type.get(),
-            self.ml_model.get(),
-        )
-        msa.prepare_data()
-        msa.train_model()
-        msa.run_interaction_2d()
-        msa.plot_network_interaction()

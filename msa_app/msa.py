@@ -1,3 +1,4 @@
+from itertools import combinations
 import json
 import time
 from typing import Optional
@@ -42,7 +43,7 @@ class MSA:
         self.model_name = model_name
         self.progress_bar = progress_bar
         self.root_gui = root
-        self.n_permutation = 1000
+        self.n_permutation = 10
         self.RoB = []
 
     def train_model(self):
@@ -69,6 +70,7 @@ class MSA:
         self.voxels = voxels.copy()
         self.elements = list(self.X.columns)
         self.total_roi = len(self.elements)
+        self.progress_bar_step = 1 / (self.total_roi - 2)
 
     def run_msa(self):
         self.shapley_table = msa.interface(
@@ -101,28 +103,34 @@ class MSA:
                 self.trained_model_iterative = self.trained_model
                 self.RoB_iterative = self.RoB.copy()
 
-            new_rob_num_voxels_altered = (self.X_unbinorized["rob"] * self.voxels["rob"]) + (
-                self.X_unbinorized[lowest_contributing_region] * self.voxels[lowest_contributing_region]
+            new_rob_num_voxels_altered = (
+                self.X_unbinorized["rob"] * self.voxels["rob"]
+            ) + (
+                self.X_unbinorized[lowest_contributing_region]
+                * self.voxels[lowest_contributing_region]
             )
             self.voxels["rob"] += self.voxels[lowest_contributing_region]
             self.X_unbinorized["rob"] = new_rob_num_voxels_altered / self.voxels["rob"]
 
             self.voxels.drop(lowest_contributing_region, inplace=True)
-            self.X_unbinorized.drop(lowest_contributing_region, axis=1, inplace=True)
-            self.X = ml_models.binarize_data(self.X_unbinorized)
-            self.elements = list(self.X.columns)
+            self.remove_roi(lowest_contributing_region)
             self.RoB.append(lowest_contributing_region)
             self.train_model()
             self.run_msa()
             self.root_gui.after(0, self.update_progressbar)
 
+    def remove_roi(self, roi):
+        self.X_unbinorized.drop(roi, axis=1, inplace=True)
+        self.X = ml_models.binarize_data(self.X_unbinorized)
+        self.elements = list(self.X.columns)
+
     def update_progressbar(self):
-        self.progress_bar.set(self.progress_bar.get() + 1 / (self.total_roi - 2))
+        self.progress_bar.set(self.progress_bar.get() + self.progress_bar_step)
         self.root_gui.update_idletasks()
 
     def setup_progressbar(self):
         self.progress_bar.configure(
-            mode="determinate", determinate_speed=1 / (len(self.elements) - 2)
+            mode="determinate",
         )
         self.progress_bar.set(0)
         self.root_gui.update_idletasks()
@@ -136,11 +144,24 @@ class MSA:
         return lowest_contributing_region
 
     def run_interaction_2d(self):
-        self.interactions = msa.network_interaction_2d(
-            n_permutations=self.n_permutation,
-            elements=list(self.X.columns),
-            objective_function=self.objective_function,
-        )
+        self.root_gui.after(0, self.setup_progressbar)
+        self.remove_roi("rob")
+        self.train_model()
+
+        all_pairs = list(combinations(self.elements, 2))
+        self.progress_bar_step = 1 / len(all_pairs)
+
+        self.interactions = 0
+
+        for pair in all_pairs:
+            self.interactions += msa.network_interaction_2d(
+                n_permutations=self.n_permutation,
+                elements=self.elements,
+                objective_function=self.objective_function,
+                pairs=[pair],
+                lazy=True,
+            )
+            self.update_progressbar()
 
     def objective_function(self, complement):
         x = pd.Series(np.zeros_like(self.X.iloc[0]), index=self.X.columns)
@@ -210,7 +231,7 @@ class MSA:
         # Plotting the heatmap
         plt.figure(figsize=(8, 6))
         plt.imshow(self.interactions, cmap="viridis", interpolation="nearest")
-        plt.xticks(np.arange(len(self.elements)), self.elements)
+        plt.xticks(np.arange(len(self.elements)), self.elements, rotation=75)
         plt.yticks(np.arange(len(self.elements)), self.elements)
         plt.colorbar()  # Display color bar
         plt.title("Network Interactions")
