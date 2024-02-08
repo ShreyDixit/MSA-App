@@ -5,12 +5,14 @@ from sklearn.metrics import accuracy_score, f1_score
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.svm import SVC, SVR
 from scipy.stats import randint, uniform
 import os
 import pandas as pd
 from collections import namedtuple
+
+from typeguard import typechecked
 
 Model_Collection = namedtuple("Model_Collection", "model_class hyperparameters")
 
@@ -64,6 +66,7 @@ models = {
 }
 
 
+@typechecked
 def prepare_data(
     data_file_path: str,
     y_column: str,
@@ -77,7 +80,7 @@ def prepare_data(
     else:
         data = pd.read_excel(data_file_path)
 
-    X = data.drop(y_column, axis=1)
+    X = data.drop(y_column, axis=1) / 100
 
     if voxels_file_path:
         voxels_file_path, voxels_file_extension = process_path(voxels_file_path)
@@ -104,10 +107,10 @@ def prepare_data(
     return X, y, voxels
 
 
-def binarize_data(X: npt.NDArray):
-    mask = X > X.median(0)
-    X = X.where(mask, 1)
-    X = X.where(~mask, 0)
+def binarize_data(X: pd.DataFrame):
+    mask = X > np.median(X.values)
+    X = X.where(mask, 0)
+    X = X.where(~mask, 1)
     return X
 
 

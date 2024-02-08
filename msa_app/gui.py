@@ -10,7 +10,7 @@ ctk.set_default_color_theme("dark-blue")
 class GUI:
     def __init__(self, root: ctk.CTk):
         self.root = root
-        self.root.geometry("600x600")
+        self.root.geometry("600x700")
         self.root.title("Lesion-Symptom Mapping using MSA")
         self.data_file_path = ctk.StringVar()
         self.voxels_file_path = ctk.StringVar()
@@ -114,6 +114,19 @@ class GUI:
             row=4, column=1, columnspan=1, pady=20, padx=10, sticky="ew"
         )
 
+        self.binarize_data_var = ctk.IntVar()
+        self.binarize_data_checkbox = ctk.CTkSwitch(
+            self.root,
+            onvalue=1,
+            offvalue=0,
+            text="Binarize Data",
+            variable=self.binarize_data_var,
+            font=("Helvetica", 18),
+        )
+        self.binarize_data_checkbox.grid(
+            row=5, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+        )
+
         # Submit button
         self.msa_button = ctk.CTkButton(
             self.root,
@@ -122,12 +135,12 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.msa_button.grid(
-            row=5, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=6, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
         self.progress_bar = ctk.CTkProgressBar(self.root, mode="indeterminate")
         self.progress_bar.grid(
-            row=6, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=7, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
         self.text = ctk.CTkTextbox(
@@ -144,7 +157,7 @@ class GUI:
             scrollbar_button_color="blue",
             scrollbar_button_hover_color="red",
         )
-        self.text.grid(row=7, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
+        self.text.grid(row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
 
     def browse_data_file(self):
         file_path = filedialog.askopenfilename()
@@ -172,6 +185,7 @@ class GUI:
             self.voxels_file_path.get(),
             self.progress_bar,
             self.root,
+            bool(self.binarize_data_var.get()),
         )
         msa.prepare_data()
         self.text.insert("end", "Prepared Data\n")
@@ -193,6 +207,6 @@ class GUI:
             msa.plot_network_interaction()
             self.text.insert("end", "Finished Running Network Interaction\n")
 
-        self.text.insert("end", "Saved Results")
+        self.text.insert("end", "Saved Results\n")
 
         msa.plot_msa(bool(self.run_iterative_var.get()))
