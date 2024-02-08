@@ -86,30 +86,34 @@ class MSA:
             lowest_contributing_region = self._get_lowest_contributing_region()
 
             if not self._is_significant("rob"):
-                self.shapley_table_iterative = self.shapley_table.copy()
-                self.accuracy_iterative = self.accuracy
-                self.f1_iterative = self.f1
-                self.trained_model_iterative = self.trained_model
-                self.RoB_iterative = self.RoB.copy()
+                self.save_iterative_msa_attributes()
 
-            new_rob_num_voxels_altered = (
-                self.X_unbinorized["rob"] * self.voxels["rob"]
-            ) + (
-                self.X_unbinorized[lowest_contributing_region]
-                * self.voxels[lowest_contributing_region]
-            )
-            self.voxels["rob"] += self.voxels[lowest_contributing_region]
-            self.X_unbinorized["rob"] = new_rob_num_voxels_altered / self.voxels["rob"]
-
-            self.voxels.drop(lowest_contributing_region, inplace=True)
+            self.add_roi_to_rob(lowest_contributing_region)
             self.remove_roi(lowest_contributing_region)
             self.RoB.append(lowest_contributing_region)
             self.train_model()
             self.run_msa()
             self.root_gui.after(0, self.update_progressbar)
 
+        self.save_iterative_msa_attributes()
+
+    def add_roi_to_rob(self, roi):
+        new_rob_num_voxels_altered = (
+            self.X_unbinorized["rob"] * self.voxels["rob"]
+        ) + (self.X_unbinorized[roi] * self.voxels[roi])
+        self.voxels["rob"] += self.voxels[roi]
+        self.X_unbinorized["rob"] = new_rob_num_voxels_altered / self.voxels["rob"]
+
+    def save_iterative_msa_attributes(self):
+        self.shapley_table_iterative = self.shapley_table.copy()
+        self.accuracy_iterative = self.accuracy
+        self.f1_iterative = self.f1
+        self.trained_model_iterative = self.trained_model
+        self.RoB_iterative = self.RoB.copy()
+
     @typechecked
     def remove_roi(self, roi: str):
+        self.voxels.drop(roi, inplace=True)
         self.X_unbinorized.drop(roi, axis=1, inplace=True)
         self.X = (
             ml_models.binarize_data(self.X_unbinorized)
