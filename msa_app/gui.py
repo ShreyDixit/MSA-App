@@ -202,11 +202,11 @@ class GUI:
             self.text.insert("end", "Finished Running MSA\n")
             msa.save()
 
+        msa.plot_msa(bool(self.run_iterative_var.get()))
+
         if self.run_network_interaction_2d_var.get():
             msa.run_interaction_2d()
             msa.plot_network_interaction()
             self.text.insert("end", "Finished Running Network Interaction\n")
 
         self.text.insert("end", "Saved Results\n")
-
-        msa.plot_msa(bool(self.run_iterative_var.get()))

@@ -130,6 +130,7 @@ class MSA:
         self.run_msa()
 
         self.root_gui.after(0, self.update_progressbar)
+        self.save_iterative_msa_attributes()
 
         while len(self.elements) > 3:
             lowest_contributing_region = self._get_lowest_contributing_region()
@@ -143,8 +144,6 @@ class MSA:
             self.train_model()
             self.run_msa()
             self.root_gui.after(0, self.update_progressbar)
-
-        self.save_iterative_msa_attributes()
 
     @typechecked
     def add_roi_to_rob(self, roi: str):
@@ -171,6 +170,8 @@ class MSA:
         self.f1_iterative = self.f1
         self.trained_model_iterative = self.trained_model
         self.RoB_iterative = self.RoB.copy()
+        self.X_iterative = self.X.copy()
+        self.voxels_iterative = self.voxels.copy()
 
     @typechecked
     def remove_roi(self, roi: str):
@@ -227,6 +228,8 @@ class MSA:
         return lowest_contributing_region
 
     def run_interaction_2d(self):
+        self.X = getattr(self, "X_iterative", "X")
+        self.voxels = getattr(self, "voxels_iterative", "voxels")
         self.root_gui.after(0, self.setup_progressbar)
         self.remove_roi("rob")
         self.train_model()
