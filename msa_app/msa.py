@@ -24,6 +24,20 @@ class MSA:
         root: ctk.CTk,
         binarize_data: bool = True,
     ):
+        """
+        Initialize the MSA object.
+
+        Parameters:
+            data_file_path (str): The path to the data file.
+            y_column (str): The name of the target column in the data file.
+            y_column_type (str): The type of the target column (e.g., 'categorical', 'continuous').
+            model_name (str): The name of the model to be used for training.
+            voxels_file_path (str): The path to the voxels file.
+            progress_bar (ctk.CTkProgressBar): The progress bar object.
+            root (ctk.CTk): The root GUI object.
+            binarize_data (bool, optional): Whether to binarize the data or not. Defaults to True.
+        """
+
         self.data_file_path = data_file_path
         self.voxels_file_path = voxels_file_path
         self.y_column = y_column
@@ -36,9 +50,6 @@ class MSA:
         self.RoB = []
 
     def train_model(self):
-        """
-        Train the model using the specified model name, input features, and target labels.
-        """
         accuracy, f1, trained_model = ml_models.train_model(
             model_name=self.model_name, X=self.X, y=self.y
         )
@@ -47,6 +58,25 @@ class MSA:
         self.trained_model = trained_model
 
     def prepare_data(self):
+        """
+        Prepare the data for the MSA algorithm.
+
+        This method prepares the data by performing the following steps:
+        1. Load the data from the specified data file path.
+        2. Extract the features (X) and the target variable (y) from the data.
+        3. Binarize the features if specified.
+        4. Copy the original features (X) and target variable (y) to instance variables.
+        5. Copy the voxels data to an instance variable.
+        6. Create a list of elements (column names of X) and store it in an instance variable.
+        7. Calculate the total number of regions of interest (ROIs) and store it in an instance variable.
+        8. Calculate the progress bar step size based on the total number of ROIs.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
         X, y, voxels = ml_models.prepare_data(
             self.data_file_path,
             self.y_column,
@@ -70,10 +100,29 @@ class MSA:
 
     def run_iterative_msa(self):
         """
-        Run the iterative MSA algorithm.
+        Run the Iterative MSA algorithm.
 
-        This function iteratively runs the MSA algorithm until the number of elements
-        is reduced to 2 or less, or until the RoB contribution is no longer significant.
+        This method runs the Iterative MSA algorithm by performing the following steps:
+        1. Set up the progress bar.
+        2. Run the MSA algorithm.
+        3. Update the progress bar.
+        4. Repeat the following steps until the number of elements is reduced to 3:
+            a. Get the lowest contributing region of interest (ROI).
+            b. Check if the Rest of Brain (RoB) region is significant.
+            c. Save the attributes of the iterative MSA if the RoB region is not significant.
+            d. Add the lowest contributing ROI to the RoB region.
+            e. Remove the lowest contributing ROI from the elements.
+            f. Append the lowest contributing ROI to the RoB list.
+            g. Train the model.
+            h. Run the MSA algorithm.
+            i. Update the progress bar.
+        5. Save the attributes of the iterative MSA.
+
+        Parameters:
+            None
+
+        Returns:
+            None
         """
 
         self.root_gui.after(0, self.setup_progressbar)
@@ -97,7 +146,19 @@ class MSA:
 
         self.save_iterative_msa_attributes()
 
-    def add_roi_to_rob(self, roi):
+    @typechecked
+    def add_roi_to_rob(self, roi: str):
+        """
+        Add a region of interest (ROI) to the Rest of Brain (RoB) region.
+
+        This method calculates the new number of voxels altered in the RoB region after adding a new ROI. It updates the RoB voxels count and recalculates the average value of alteration of the RoB region based on the new voxels count.
+
+        Parameters:
+            roi (str): The name of the ROI to be added to the RoB region.
+
+        Returns:
+            None
+        """
         new_rob_num_voxels_altered = (
             self.X_unbinorized["rob"] * self.voxels["rob"]
         ) + (self.X_unbinorized[roi] * self.voxels[roi])
@@ -113,6 +174,21 @@ class MSA:
 
     @typechecked
     def remove_roi(self, roi: str):
+        """
+        Remove a region of interest (ROI).
+
+        This method removes a specified ROI by performing the following steps:
+        1. Drop the ROI from the voxels data.
+        2. Drop the ROI column from the unbinarized features (X_unbinorized).
+        3. Update the binarized features (X) by either binarizing the updated X_unbinorized or copying it.
+        4. Update the list of elements (column names of X) to reflect the removed ROI.
+
+        Parameters:
+            roi (str): The name of the ROI to be removed.
+
+        Returns:
+            None
+        """
         self.voxels.drop(roi, inplace=True)
         self.X_unbinorized.drop(roi, axis=1, inplace=True)
         self.X = (
@@ -135,6 +211,14 @@ class MSA:
 
     @typechecked
     def _get_lowest_contributing_region(self) -> str:
+        """
+        Get the lowest contributing region of interest (ROI).
+
+        This method calculates the ROI with the lowest absolute Shapley value from the Shapley table. If the lowest contributing ROI is the Rest of Brain (RoB), the ROI with the second lowest absolute Shapley value is returned instead.
+
+        Returns:
+            str: The name of the lowest contributing ROI.
+        """
         lowest_contributing_region = self.shapley_table.shapley_values.abs().idxmin()
         if lowest_contributing_region.lower() == "rob":
             lowest_contributing_region = (
@@ -240,6 +324,15 @@ class MSA:
 
     @typechecked
     def _is_significant(self, brain_region: str) -> np.bool_:
+        """
+        Check if a brain region is statistically significant based on its Shapley values.
+
+        Parameters:
+            brain_region (str): The name of the brain region to check.
+
+        Returns:
+            bool: True if the brain region is statistically significant, False otherwise.
+        """
         return (
             abs(self.shapley_table[brain_region].mean())
             > self.shapley_table[brain_region].std()
