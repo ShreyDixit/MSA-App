@@ -150,7 +150,7 @@ def binarize_data(X: pd.DataFrame) -> pd.DataFrame:
     mask = X > np.median(X.values)
     X = X.where(mask, 0)
     X = X.where(~mask, 1)
-    return X
+    return X.astype(int)
 
 
 @typechecked
@@ -168,6 +168,11 @@ def process_path(data_file_path: str) -> Tuple[str, str]:
 def train_model(
     model_name: str, X: pd.DataFrame, y: pd.Series
 ) -> Tuple[float, float, RandomizedSearchCV]:
+
+    assert (
+        np.max(X.values) <= 1 and np.min(X.values) >= 0
+    ), "Data passed is not beween 1 and 0. There is some error somewhere!"
+
     model_collection = models[model_name]
     opt = RandomizedSearchCV(
         model_collection.model_class(),
