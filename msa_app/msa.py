@@ -23,6 +23,7 @@ class MSA:
         progress_bar: ctk.CTkProgressBar,
         root: ctk.CTk,
         binarize_data: bool = True,
+        run_interaction_2d: bool = True,
     ):
         """
         Initialize the MSA object.
@@ -47,6 +48,7 @@ class MSA:
         self.root_gui = root
         self.binarize_data = binarize_data
         self.n_permutation = 1000
+        self.smallest_set_of_roi = 6 if run_interaction_2d else 3
         self.RoB = []
 
     def train_model(self):
@@ -89,7 +91,7 @@ class MSA:
         self.voxels = voxels.copy()
         self.elements = list(self.X.columns)
         self.total_roi = len(self.elements)
-        self.progress_bar_step = 1 / (self.total_roi - 2)
+        self.progress_bar_step = 1 / (self.total_roi - self.smallest_set_of_roi + 1)
 
     def run_msa(self):
         self.shapley_table = msa.interface(
@@ -132,7 +134,7 @@ class MSA:
         self.root_gui.after(0, self.update_progressbar)
         self.save_iterative_msa_attributes()
 
-        while len(self.elements) > 3:
+        while len(self.elements) > self.smallest_set_of_roi:
             lowest_contributing_region = self._get_lowest_contributing_region()
 
             if not self._is_significant("rob"):
@@ -170,7 +172,7 @@ class MSA:
         self.f1_iterative = self.f1
         self.trained_model_iterative = self.trained_model
         self.RoB_iterative = self.RoB.copy()
-        self.X_iterative = self.X.copy()
+        self.X_unbinorized_iterative = self.X_unbinorized.copy()
         self.voxels_iterative = self.voxels.copy()
 
     @typechecked
@@ -228,8 +230,8 @@ class MSA:
         return lowest_contributing_region
 
     def run_interaction_2d(self):
-        self.X = getattr(self, "X_iterative", "X")
-        self.voxels = getattr(self, "voxels_iterative", "voxels")
+        self.X_unbinorized = getattr(self, "X_unbinorized_iterative", self.X)
+        self.voxels = getattr(self, "voxels_iterative", self.voxels)
         self.root_gui.after(0, self.setup_progressbar)
         self.remove_roi("rob")
         self.train_model()
@@ -317,8 +319,8 @@ class MSA:
 
     def plot_network_interaction(self):
         # Plotting the heatmap
-        plt.figure(figsize=(8, 6))
-        plt.imshow(self.interactions, cmap="viridis", interpolation="nearest")
+        plt.figure(figsize=(10, 10))
+        plt.imshow(self.interactions, cmap="RdBu", interpolation="nearest")
         plt.xticks(np.arange(len(self.elements)), self.elements, rotation=75)
         plt.yticks(np.arange(len(self.elements)), self.elements)
         plt.colorbar()  # Display color bar
