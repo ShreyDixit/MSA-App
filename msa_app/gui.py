@@ -14,6 +14,12 @@ class GUI:
         self.root.title("Lesion-Symptom Mapping using MSA")
         self.data_file_path = ctk.StringVar()
         self.voxels_file_path = ctk.StringVar()
+        self.y_column_type = ctk.StringVar(value="NIHSS Score")
+        self.y_column = ctk.StringVar()
+        self.ml_model = ctk.StringVar()
+        self.run_network_interaction_2d_var = ctk.IntVar()
+        self.binarize_data_var = ctk.IntVar()
+        self.run_iterative_var = ctk.IntVar()
         self.create_widget()
 
     def create_widget(self):
@@ -58,7 +64,6 @@ class GUI:
         )
         self.voxels_file_entry.grid(row=1, column=1, padx=10, sticky="e")
 
-        self.y_column_type = ctk.StringVar(value="NIHSS Score")
         self.y_column_label = ctk.CTkComboBox(
             self.root,
             values=["NIHSS Score", "Performance"],
@@ -67,7 +72,6 @@ class GUI:
         )
         self.y_column_label.grid(row=2, column=0, padx=10, pady=20, sticky="w")
 
-        self.y_column = ctk.StringVar()  # set initial value
         self.y_column_entry = ctk.CTkEntry(
             self.root, textvariable=self.y_column, font=("Helvetica", 18)
         )
@@ -78,7 +82,6 @@ class GUI:
         )
         self.ml_model_label.grid(row=3, column=0, padx=10, sticky="w")
 
-        self.ml_model = ctk.StringVar()  # set initial value
         self.ml_model_combobox = ctk.CTkComboBox(
             self.root,
             values=list(ml_models.models.keys()),
@@ -88,7 +91,6 @@ class GUI:
         )
         self.ml_model_combobox.grid(row=3, column=1, padx=10, sticky="e")
 
-        self.run_iterative_var = ctk.IntVar()
         self.run_iterative_checkbox = ctk.CTkSwitch(
             self.root,
             onvalue=1,
@@ -101,7 +103,6 @@ class GUI:
             row=4, column=0, columnspan=1, pady=20, padx=10, sticky="ew"
         )
 
-        self.run_network_interaction_2d_var = ctk.IntVar()
         self.run_network_interaction_2d_checkbox = ctk.CTkSwitch(
             self.root,
             onvalue=1,
@@ -114,7 +115,6 @@ class GUI:
             row=4, column=1, columnspan=1, pady=20, padx=10, sticky="ew"
         )
 
-        self.binarize_data_var = ctk.IntVar()
         self.binarize_data_checkbox = ctk.CTkSwitch(
             self.root,
             onvalue=1,

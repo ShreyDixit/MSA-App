@@ -1,13 +1,13 @@
 from itertools import combinations
 import json
 import time
-from typing import Optional
 from matplotlib import pyplot as plt
 import customtkinter as ctk
 
 from msapy import msa
 import numpy as np
 import pandas as pd
+from typeguard import typechecked
 
 from msa_app import ml_models
 
@@ -24,19 +24,6 @@ class MSA:
         root: ctk.CTk,
         binarize_data: bool = True,
     ):
-        """
-        Initializes the model with the given data file path, y column, y column type, model name, and optional voxels file path.
-
-        Parameters:
-            data_file_path (str): The path to the data file with data on ROI alterations.
-            y_column (str): The column representing the target  i.e. NIHSS Score or Performance.
-            y_column_type (str): Can have two values, either NIHSS or Performance.
-            model_name (str): The name of the model.
-            voxels_file_path (str, optional): The path to the voxels file, defaults to None.
-
-        Returns:
-            None
-        """
         self.data_file_path = data_file_path
         self.voxels_file_path = voxels_file_path
         self.y_column = y_column
@@ -121,7 +108,8 @@ class MSA:
             self.run_msa()
             self.root_gui.after(0, self.update_progressbar)
 
-    def remove_roi(self, roi):
+    @typechecked
+    def remove_roi(self, roi: str):
         self.X_unbinorized.drop(roi, axis=1, inplace=True)
         self.X = (
             ml_models.binarize_data(self.X_unbinorized)
@@ -141,7 +129,8 @@ class MSA:
         self.progress_bar.set(0)
         self.root_gui.update_idletasks()
 
-    def _get_lowest_contributing_region(self):
+    @typechecked
+    def _get_lowest_contributing_region(self) -> str:
         lowest_contributing_region = self.shapley_table.shapley_values.abs().idxmin()
         if lowest_contributing_region.lower() == "rob":
             lowest_contributing_region = (
@@ -169,7 +158,8 @@ class MSA:
             )
             self.update_progressbar()
 
-    def objective_function(self, complement):
+    @typechecked
+    def objective_function(self, complement) -> float:
         x = pd.Series(np.zeros_like(self.X.iloc[0]), index=self.X.columns)
         if complement:
             x[list(complement)] = 1
@@ -208,7 +198,8 @@ class MSA:
 
         self.shapley_table.shapley_values.to_csv(f"shapley_values_{saving_time}.csv")
 
-    def plot_msa(self, iterative=False):
+    @typechecked
+    def plot_msa(self, iterative: bool = False):
         # Calculate mean values and confidence intervals (CI) for error bars
         shapley_table = (
             self.shapley_table_iterative if iterative else self.shapley_table
@@ -243,7 +234,8 @@ class MSA:
         plt.title("Network Interactions")
         plt.show()
 
-    def _is_significant(self, brain_region: str) -> bool:
+    @typechecked
+    def _is_significant(self, brain_region: str) -> np.bool_:
         return (
             abs(self.shapley_table[brain_region].mean())
             > self.shapley_table[brain_region].std()
