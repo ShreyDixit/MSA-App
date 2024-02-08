@@ -19,9 +19,10 @@ class MSA:
         y_column: str,
         y_column_type: str,
         model_name: str,
-        voxels_file_path: Optional[str] = None,
-        progress_bar: Optional[ctk.CTkProgressBar] = None,
-        root: Optional[ctk.CTk] = None,
+        voxels_file_path: str,
+        progress_bar: ctk.CTkProgressBar,
+        root: ctk.CTk,
+        binarize_data: bool = True,
     ):
         """
         Initializes the model with the given data file path, y column, y column type, model name, and optional voxels file path.
@@ -43,7 +44,8 @@ class MSA:
         self.model_name = model_name
         self.progress_bar = progress_bar
         self.root_gui = root
-        self.n_permutation = 10
+        self.binarize_data = binarize_data
+        self.n_permutation = 1000
         self.RoB = []
 
     def train_model(self):
@@ -65,7 +67,7 @@ class MSA:
             self.voxels_file_path,
         )
         self.X_unbinorized = X.copy()
-        self.X = ml_models.binarize_data(X)
+        self.X = ml_models.binarize_data(X) if self.binarize_data else X.copy()
         self.y = y.copy()
         self.voxels = voxels.copy()
         self.elements = list(self.X.columns)
@@ -121,7 +123,11 @@ class MSA:
 
     def remove_roi(self, roi):
         self.X_unbinorized.drop(roi, axis=1, inplace=True)
-        self.X = ml_models.binarize_data(self.X_unbinorized)
+        self.X = (
+            ml_models.binarize_data(self.X_unbinorized)
+            if self.binarize_data
+            else self.X_unbinorized.copy()
+        )
         self.elements = list(self.X.columns)
 
     def update_progressbar(self):
