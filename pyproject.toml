@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "msa-app"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["Shrey Dixit <shrey.akshaj@gmail.com>"]
 readme = "README.md"
@@ -14,6 +14,10 @@ scikit-learn = "^1.3.2"
 openpyxl = "^3.1.2"
 scipy = "^1.11.4"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "6.2.5"
+pytest-mock = "^3.12.0"
 
 [build-system]
 requires = ["poetry-core"]

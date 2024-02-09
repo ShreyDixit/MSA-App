@@ -1,15 +1,17 @@
-from typing import Optional, Tuple
+from typing import Tuple
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.svm import SVC, SVR
 from scipy.stats import randint, uniform
 import os
 import pandas as pd
 from collections import namedtuple
+
+from typeguard import typechecked
 
 Model_Collection = namedtuple("Model_Collection", "model_class hyperparameters")
 
@@ -63,12 +65,35 @@ models = {
 }
 
 
+@typechecked
 def prepare_data(
     data_file_path: str,
     y_column: str,
     y_column_type: str,
-    voxels_file_path: Optional[str] = None,
+    voxels_file_path: str,
 ) -> Tuple[pd.DataFrame, pd.Series, pd.Series]:
+    """
+    Prepare the data for model training and evaluation.
+
+    Parameters:
+        data_file_path (str): The path to the data file. The file can be in CSV or xlsx format. Data file contains the percentage of alteration of each brain ROI
+        y_column (str): The name of the column containing the target variable. It could be NIHSS Score, or the performance
+        y_column_type (str): The type of the target variable. Possible values are "NIHSS Score" or "Performance".
+        voxels_file_path (str): The path to the voxels file. The file can be in CSV or xlsx format. If not provided, the number of voxels for each ROI will be set to 1.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.Series, pd.Series]: A tuple containing the following:
+            - X: The feature matrix as a pandas DataFrame.
+            - y: The target variable as a pandas Series.
+            - voxels: The voxels information as a pandas Series.
+
+    Raises:
+        RuntimeError: If the data file extension is not CSV or xlsx.
+        AssertionError: If the data values are not between 0 and 1.
+        AssertionError: If the brain regions in the data file are different from the brain regions in the voxels file.
+        AssertionError: If the y_column does not exist in the data file.
+
+    """
     data_file_path, data_file_extension = process_path(data_file_path)
 
     if data_file_extension == ".csv":
@@ -76,7 +101,11 @@ def prepare_data(
     else:
         data = pd.read_excel(data_file_path)
 
-    X = data.drop(y_column, axis=1)
+    X = data.drop(y_column, axis=1) / 100
+
+    assert (
+        np.max(X.values) <= 1 and np.min(X.values) >= 0
+    ), "Data should be percentage of alteration in ROI, i.e. between 0 and 100"
 
     if voxels_file_path:
         voxels_file_path, voxels_file_extension = process_path(voxels_file_path)
@@ -96,17 +125,36 @@ def prepare_data(
         X["rob"] = 0
         voxels["rob"] = 0
 
-    mask = X > X.median(0)
-    X.where(mask, 1, inplace=True)
-    X.where(~mask, 0, inplace=True)
+    assert y_column in data.columns, f"Column {y_column} doesn't exist in data file"
+
     y = data[y_column]
 
+    # Y should be converted to performance in case it is NIHSS Score
     y = y.max() - y if y_column_type == "NIHSS Score" else y
 
     return X, y, voxels
 
 
-def process_path(data_file_path):
+@typechecked
+def binarize_data(X: pd.DataFrame) -> pd.DataFrame:
+    """
+    Binarizes the input data by replacing values above the median with 1 and values below or equal to the median with 0.
+
+    Parameters:
+        X (pd.DataFrame): The input data to be binarized.
+
+    Returns:
+        pd.DataFrame: The binarized data.
+
+    """
+    mask = X > np.median(X.values)
+    X = X.where(mask, 0)
+    X = X.where(~mask, 1)
+    return X.astype(int)
+
+
+@typechecked
+def process_path(data_file_path: str) -> Tuple[str, str]:
     data_file_path = os.path.normpath(data_file_path)
     data_file_extension = os.path.splitext(data_file_path)[1]
     if data_file_extension not in (".csv", ".xlsx"):
@@ -116,7 +164,15 @@ def process_path(data_file_path):
     return data_file_path, data_file_extension
 
 
-def train_model(model_name: str, X: np.ndarray, y: np.ndarray, n_iter: int = 32):
+@typechecked
+def train_model(
+    model_name: str, X: pd.DataFrame, y: pd.Series
+) -> Tuple[float, float, RandomizedSearchCV]:
+
+    assert (
+        np.max(X.values) <= 1 and np.min(X.values) >= 0
+    ), "Data passed is not beween 1 and 0. There is some error somewhere!"
+
     model_collection = models[model_name]
     opt = RandomizedSearchCV(
         model_collection.model_class(),
