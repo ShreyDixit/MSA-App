@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from msa_app import ml_models
 from msa_app.msa import MSA
 import threading
@@ -69,11 +69,12 @@ class GUI:
             values=["NIHSS Score", "Performance"],
             variable=self.y_column_type,
             font=("Helvetica", 18),
+            width=200,
         )
         self.y_column_label.grid(row=2, column=0, padx=10, pady=20, sticky="w")
 
         self.y_column_entry = ctk.CTkEntry(
-            self.root, textvariable=self.y_column, font=("Helvetica", 18)
+            self.root, textvariable=self.y_column, font=("Helvetica", 18), width=200
         )
         self.y_column_entry.grid(row=2, column=1, padx=10, pady=20, sticky="e")
 
@@ -86,7 +87,7 @@ class GUI:
             self.root,
             values=list(ml_models.models.keys()),
             variable=self.ml_model,
-            width=200,
+            width=300,
             font=("Helvetica", 18),
         )
         self.ml_model_combobox.grid(row=3, column=1, padx=10, sticky="e")
@@ -156,6 +157,7 @@ class GUI:
             activate_scrollbars=True,
             scrollbar_button_color="blue",
             scrollbar_button_hover_color="red",
+            state="disabled",
         )
         self.text.grid(row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
 
@@ -176,7 +178,19 @@ class GUI:
         threading.Thread(target=self.run_msa, daemon=True).start()
 
     def run_msa(self):
+        try:
+            self.call_msa_pipline()
+
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+        finally:
+            self.msa_button.configure(state="normal")
+            self.progress_bar.stop()
+
+    def call_msa_pipline(self):
         self.text.insert("end", "Running MSA\n")
+        self.msa_button.configure(state="disabled")
         msa = MSA(
             self.data_file_path.get(),
             self.y_column.get(),
@@ -199,7 +213,6 @@ class GUI:
             msa.save_iterative()
         else:
             msa.run_msa()
-            self.progress_bar.stop()
             self.text.insert("end", "Finished Running MSA\n")
             msa.save()
 
