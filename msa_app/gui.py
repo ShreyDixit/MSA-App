@@ -69,11 +69,12 @@ class GUI:
             values=["NIHSS Score", "Performance"],
             variable=self.y_column_type,
             font=("Helvetica", 18),
+            width=200,
         )
         self.y_column_label.grid(row=2, column=0, padx=10, pady=20, sticky="w")
 
         self.y_column_entry = ctk.CTkEntry(
-            self.root, textvariable=self.y_column, font=("Helvetica", 18)
+            self.root, textvariable=self.y_column, font=("Helvetica", 18), width=200
         )
         self.y_column_entry.grid(row=2, column=1, padx=10, pady=20, sticky="e")
 
@@ -86,7 +87,7 @@ class GUI:
             self.root,
             values=list(ml_models.models.keys()),
             variable=self.ml_model,
-            width=200,
+            width=300,
             font=("Helvetica", 18),
         )
         self.ml_model_combobox.grid(row=3, column=1, padx=10, sticky="e")
