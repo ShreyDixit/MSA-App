@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from msa_app import ml_models
 from msa_app.msa import MSA
 import threading
@@ -156,6 +156,7 @@ class GUI:
             activate_scrollbars=True,
             scrollbar_button_color="blue",
             scrollbar_button_hover_color="red",
+            state="disabled",
         )
         self.text.grid(row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
 
@@ -176,7 +177,19 @@ class GUI:
         threading.Thread(target=self.run_msa, daemon=True).start()
 
     def run_msa(self):
+        try:
+            self.call_msa_pipline()
+
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+        finally:
+            self.msa_button.configure(state="normal")
+            self.progress_bar.stop()
+
+    def call_msa_pipline(self):
         self.text.insert("end", "Running MSA\n")
+        self.msa_button.configure(state="disabled")
         msa = MSA(
             self.data_file_path.get(),
             self.y_column.get(),
@@ -199,7 +212,6 @@ class GUI:
             msa.save_iterative()
         else:
             msa.run_msa()
-            self.progress_bar.stop()
             self.text.insert("end", "Finished Running MSA\n")
             msa.save()
 
