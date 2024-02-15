@@ -157,7 +157,6 @@ class GUI:
             activate_scrollbars=True,
             scrollbar_button_color="blue",
             scrollbar_button_hover_color="red",
-            state="disabled",
         )
         self.text.grid(row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
 
