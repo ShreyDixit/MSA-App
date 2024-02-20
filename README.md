@@ -59,3 +59,4 @@ The GUI offers several configurable options:
 - More Tests
 - Docs and Instructions for Operating Systems I missed
 - Add none ML model (Add a check)
+- Show how many ROI left at each step

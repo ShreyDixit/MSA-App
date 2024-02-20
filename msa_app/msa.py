@@ -1,5 +1,6 @@
 from itertools import combinations
 import json
+import os
 import time
 from matplotlib import pyplot as plt
 import customtkinter as ctk
@@ -234,9 +235,11 @@ class MSA:
         x = pd.Series(np.zeros_like(self.X.iloc[0]), index=self.X.columns)
         if complement:
             x[list(complement)] = 1
-        return np.maximum(0, self.trained_model.predict(x.values.reshape(1, -1))).astype(float)[0]
+        return np.maximum(
+            0, self.trained_model.predict(x.values.reshape(1, -1))
+        ).astype(float)[0]
 
-    def save_iterative(self):
+    def save_iterative(self, output_folder: str):
         save_dict = {
             "shapley_values_iterative": self.shapley_table_iterative.shapley_values.to_dict(),
             "shapley_values_iterative_standard_deviation": self.shapley_table_iterative.std().to_dict(),
@@ -248,14 +251,16 @@ class MSA:
         }
 
         saving_time = time.strftime("%Y%m%d-%H%M%S")
-        with open(f"results_iterative_{saving_time}.json", "w") as f:
+        with open(
+            os.path.join(output_folder, f"results_iterative_{saving_time}.json"), "w"
+        ) as f:
             json.dump(save_dict, f, indent=4)
 
         self.shapley_table_iterative.shapley_values.to_csv(
-            f"shapley_values_iterative_{saving_time}.csv"
+            os.path.join(output_folder, f"shapley_values_iterative_{saving_time}.csv")
         )
 
-    def save(self):
+    def save(self, output_folder: str):
         save_dict = {
             "shapley_values": self.shapley_table.shapley_values.to_dict(),
             "shapley_values_standard_deviation": self.shapley_table.std().to_dict(),
@@ -266,10 +271,12 @@ class MSA:
         }
 
         saving_time = time.strftime("%Y%m%d-%H%M%S")
-        with open(f"results_{saving_time}.json", "w") as f:
+        with open(os.path.join(output_folder, f"results_{saving_time}.json"), "w") as f:
             json.dump(save_dict, f, indent=4)
 
-        self.shapley_table.shapley_values.to_csv(f"shapley_values_{saving_time}.csv")
+        self.shapley_table.shapley_values.to_csv(
+            os.path.join(output_folder, f"shapley_values_{saving_time}.csv")
+        )
 
     @typechecked
     def plot_msa(self, iterative: bool = False):

@@ -18,6 +18,7 @@ class GUI:
         self.data_file_path = ctk.StringVar()
         self.score_file_path = ctk.StringVar()
         self.voxels_file_path = ctk.StringVar()
+        self.output_folder_path = ctk.StringVar()
         self.ml_model = ctk.StringVar()
         self.run_network_interaction_2d_var = ctk.IntVar()
         self.binarize_data_var = ctk.IntVar()
@@ -152,6 +153,26 @@ class GUI:
             row=5, column=1, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
+        self.browse_button_output_folder = ctk.CTkButton(
+            self.root,
+            text="Choose Output Folder",
+            command=self.browse_output_folder,
+            font=("Helvetica", 18),
+        )
+        self.browse_button_output_folder.grid(
+            row=6, column=0, pady=20, padx=10, sticky="w"
+        )
+
+        # Entry widget to display the file path
+        self.output_folder_entry = ctk.CTkEntry(
+            self.root,
+            textvariable=self.output_folder_path,
+            state="readonly",
+            width=200,
+            font=("Helvetica", 18),
+        )
+        self.output_folder_entry.grid(row=6, column=1, padx=10, sticky="e")
+
         # Submit button
         self.msa_button = ctk.CTkButton(
             self.root,
@@ -160,12 +181,12 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.msa_button.grid(
-            row=6, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=7, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
         self.progress_bar = ctk.CTkProgressBar(self.root, mode="indeterminate")
         self.progress_bar.grid(
-            row=7, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
         self.text = ctk.CTkTextbox(
@@ -182,7 +203,7 @@ class GUI:
             scrollbar_button_color="blue",
             scrollbar_button_hover_color="red",
         )
-        self.text.grid(row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
+        self.text.grid(row=9, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
 
     def browse_file(self, path_var: ctk.StringVar):
         file_path = filedialog.askopenfilename()
@@ -197,6 +218,11 @@ class GUI:
 
     def browse_score_file(self):
         self.browse_file(self.score_file_path)
+
+    def browse_output_folder(self):
+        file_path = filedialog.askdirectory()
+        if file_path:
+            self.output_folder_path.set(file_path)
 
     def click_run_button(self):
         if not self.run_iterative_var.get():
@@ -237,11 +263,11 @@ class GUI:
         if self.run_iterative_var.get():
             msa.run_iterative_msa()
             self.text.insert("end", "Finished Running Iterative MSA\n")
-            msa.save_iterative()
+            msa.save_iterative(self.output_folder_path.get())
         else:
             msa.run_msa()
             self.text.insert("end", "Finished Running MSA\n")
-            msa.save()
+            msa.save(self.output_folder_path.get())
 
         msa.plot_msa(bool(self.run_iterative_var.get()))
 
