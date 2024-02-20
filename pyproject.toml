@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "msa-app"
-version = "0.3.0"
+version = "0.4.0"
 description = ""
 authors = ["Shrey Dixit <shrey.akshaj@gmail.com>"]
 readme = "README.md"
