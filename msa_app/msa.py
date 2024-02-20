@@ -239,7 +239,8 @@ class MSA:
     def save_iterative(self):
         save_dict = {
             "shapley_values_iterative": self.shapley_table_iterative.shapley_values.to_dict(),
-            "Rest of Breain": self.RoB_iterative,
+            "shapley_values_iterative_standard_deviation": self.shapley_table_iterative.std().to_dict(),
+            "Rest of Brain": self.RoB_iterative,
             "accuracy": self.accuracy_iterative,
             "f1": self.f1_iterative,
             "model used": self.model_name,
@@ -257,6 +258,7 @@ class MSA:
     def save(self):
         save_dict = {
             "shapley_values": self.shapley_table.shapley_values.to_dict(),
+            "shapley_values_standard_deviation": self.shapley_table.std().to_dict(),
             "accuracy": self.accuracy,
             "f1": self.f1,
             "model used": self.model_name,
