@@ -10,17 +10,23 @@ ctk.set_default_color_theme("dark-blue")
 class GUI:
     def __init__(self, root: ctk.CTk):
         self.root = root
-        self.root.geometry("600x700")
-        self.root.title("Lesion-Symptom Mapping using MSA")
+        self.configure_root()
+        self.initialize_variables()
+        self.create_widget()
+
+    def initialize_variables(self):
         self.data_file_path = ctk.StringVar()
+        self.score_file_path = ctk.StringVar()
         self.voxels_file_path = ctk.StringVar()
-        self.y_column_type = ctk.StringVar(value="NIHSS Score")
-        self.y_column = ctk.StringVar()
         self.ml_model = ctk.StringVar()
         self.run_network_interaction_2d_var = ctk.IntVar()
         self.binarize_data_var = ctk.IntVar()
         self.run_iterative_var = ctk.IntVar()
-        self.create_widget()
+        self.is_score_performance = ctk.IntVar()
+
+    def configure_root(self):
+        self.root.geometry("600x800")
+        self.root.title("Lesion-Symptom Mapping using MSA")
 
     def create_widget(self):
         # Function to handle the file upload
@@ -44,6 +50,26 @@ class GUI:
         )
         self.data_file_entry.grid(row=0, column=1, padx=10, sticky="e")
 
+        self.browse_button_score_file = ctk.CTkButton(
+            self.root,
+            text="Upload Score File",
+            command=self.browse_score_file,
+            font=("Helvetica", 18),
+        )
+        self.browse_button_score_file.grid(
+            row=1, column=0, pady=20, padx=10, sticky="w"
+        )
+
+        # Entry widget to display the file path
+        self.score_file_entry = ctk.CTkEntry(
+            self.root,
+            textvariable=self.score_file_path,
+            state="readonly",
+            width=200,
+            font=("Helvetica", 18),
+        )
+        self.score_file_entry.grid(row=1, column=1, padx=10, sticky="e")
+
         self.browse_button_voxels_file = ctk.CTkButton(
             self.root,
             text="Upload Voxels File (Optional)",
@@ -51,7 +77,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.browse_button_voxels_file.grid(
-            row=1, column=0, pady=20, padx=10, sticky="w"
+            row=2, column=0, pady=20, padx=10, sticky="w"
         )
 
         # Entry widget to display the file path
@@ -62,21 +88,7 @@ class GUI:
             width=200,
             font=("Helvetica", 18),
         )
-        self.voxels_file_entry.grid(row=1, column=1, padx=10, sticky="e")
-
-        self.y_column_label = ctk.CTkComboBox(
-            self.root,
-            values=["NIHSS Score", "Performance"],
-            variable=self.y_column_type,
-            font=("Helvetica", 18),
-            width=200,
-        )
-        self.y_column_label.grid(row=2, column=0, padx=10, pady=20, sticky="w")
-
-        self.y_column_entry = ctk.CTkEntry(
-            self.root, textvariable=self.y_column, font=("Helvetica", 18), width=200
-        )
-        self.y_column_entry.grid(row=2, column=1, padx=10, pady=20, sticky="e")
+        self.voxels_file_entry.grid(row=2, column=1, padx=10, sticky="e")
 
         self.ml_model_label = ctk.CTkLabel(
             self.root, text="Machine Learning Model: ", font=("Helvetica", 18)
@@ -128,6 +140,18 @@ class GUI:
             row=5, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
+        self.binarize_data_checkbox = ctk.CTkSwitch(
+            self.root,
+            onvalue=1,
+            offvalue=0,
+            text="Is Score Performance?",
+            variable=self.is_score_performance,
+            font=("Helvetica", 18),
+        )
+        self.binarize_data_checkbox.grid(
+            row=5, column=1, columnspan=2, pady=20, padx=10, sticky="ew"
+        )
+
         # Submit button
         self.msa_button = ctk.CTkButton(
             self.root,
@@ -160,15 +184,19 @@ class GUI:
         )
         self.text.grid(row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
 
-    def browse_data_file(self):
+    def browse_file(self, path_var: ctk.StringVar):
         file_path = filedialog.askopenfilename()
         if file_path:
-            self.data_file_path.set(file_path)
+            path_var.set(file_path)
+
+    def browse_data_file(self):
+        self.browse_file(self.data_file_path)
 
     def browse_voxels_file(self):
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            self.voxels_file_path.set(file_path)
+        self.browse_file(self.voxels_file_path)
+
+    def browse_score_file(self):
+        self.browse_file(self.score_file_path)
 
     def click_run_button(self):
         if not self.run_iterative_var.get():
@@ -191,15 +219,15 @@ class GUI:
         self.text.insert("end", "Running MSA\n")
         self.msa_button.configure(state="disabled")
         msa = MSA(
-            self.data_file_path.get(),
-            self.y_column.get(),
-            self.y_column_type.get(),
-            self.ml_model.get(),
-            self.voxels_file_path.get(),
-            self.progress_bar,
-            self.root,
-            bool(self.binarize_data_var.get()),
-            bool(self.run_network_interaction_2d_var.get()),
+            data_file_path=self.data_file_path.get(),
+            voxels_file_path=self.voxels_file_path.get(),
+            score_file_path=self.score_file_path.get(),
+            model_name=self.ml_model.get(),
+            progress_bar=self.progress_bar,
+            root=self.root,
+            binarize_data=bool(self.binarize_data_var.get()),
+            run_interaction_2d=bool(self.run_network_interaction_2d_var.get()),
+            is_score_performance=bool(self.is_score_performance.get()),
         )
         msa.prepare_data()
         self.text.insert("end", "Prepared Data\n")

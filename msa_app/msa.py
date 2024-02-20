@@ -15,38 +15,40 @@ from msa_app import ml_models
 class MSA:
     def __init__(
         self,
+        *,
         data_file_path: str,
-        y_column: str,
-        y_column_type: str,
-        model_name: str,
+        score_file_path: str,
         voxels_file_path: str,
+        model_name: str,
         progress_bar: ctk.CTkProgressBar,
         root: ctk.CTk,
-        binarize_data: bool = True,
-        run_interaction_2d: bool = True,
+        binarize_data: bool,
+        is_score_performance: bool,
+        run_interaction_2d: bool,
     ):
         """
-        Initialize the MSA object.
+        Initialize the MSA object with data paths, model information, and GUI components.
 
         Parameters:
-            data_file_path (str): The path to the data file.
-            y_column (str): The name of the target column in the data file.
-            y_column_type (str): The type of the target column (e.g., 'categorical', 'continuous').
-            model_name (str): The name of the model to be used for training.
-            voxels_file_path (str): The path to the voxels file.
-            progress_bar (ctk.CTkProgressBar): The progress bar object.
-            root (ctk.CTk): The root GUI object.
-            binarize_data (bool, optional): Whether to binarize the data or not. Defaults to True.
+            data_file_path (str): Path to the CSV or Excel file containing the dataset.
+            score_file_path (str): Path to the CSV or Excel file containing the target variable scores.
+            voxels_file_path (str): Path to the CSV or Excel file containing voxel information for each ROI.
+            model_name (str): Name of the machine learning model to be used from the predefined models.
+            progress_bar (ctk.CTkProgressBar): CustomTkinter progress bar object for visual progress feedback.
+            root (ctk.CTk): CustomTkinter root window object, serving as the GUI's main window.
+            binarize_data (bool): Flag indicating whether the input data should be binarized.
+            is_score_performance (bool): Flag indicating if the score represents a performance metric that doesn't need inversion.
+            run_interaction_2d (bool): Flag indicating whether to run 2D network interaction analysis.
         """
 
         self.data_file_path = data_file_path
+        self.score_file_path = score_file_path
         self.voxels_file_path = voxels_file_path
-        self.y_column = y_column
-        self.y_column_type = y_column_type
         self.model_name = model_name
         self.progress_bar = progress_bar
         self.root_gui = root
         self.binarize_data = binarize_data
+        self.is_performance_score = is_score_performance
         self.n_permutation = 1000
         self.smallest_set_of_roi = 6 if run_interaction_2d else 3
         self.RoB = []
@@ -61,29 +63,17 @@ class MSA:
 
     def prepare_data(self):
         """
-        Prepare the data for the MSA algorithm.
+        Prepares the data by loading from files, optionally binarizing, and setting up for analysis.
 
-        This method prepares the data by performing the following steps:
-        1. Load the data from the specified data file path.
-        2. Extract the features (X) and the target variable (y) from the data.
-        3. Binarize the features if specified.
-        4. Copy the original features (X) and target variable (y) to instance variables.
-        5. Copy the voxels data to an instance variable.
-        6. Create a list of elements (column names of X) and store it in an instance variable.
-        7. Calculate the total number of regions of interest (ROIs) and store it in an instance variable.
-        8. Calculate the progress bar step size based on the total number of ROIs.
-
-        Parameters:
-            None
-
-        Returns:
-            None
+        - Loads data, scores, and optionally voxel information from specified paths.
+        - Binarizes the feature data if requested.
+        - Stores the processed data for use in MSA analysis.
         """
         X, y, voxels = ml_models.prepare_data(
-            self.data_file_path,
-            self.y_column,
-            self.y_column_type,
-            self.voxels_file_path,
+            data_file_path=self.data_file_path,
+            score_file_path=self.score_file_path,
+            voxels_file_path=self.voxels_file_path,
+            is_score_performance=self.is_performance_score,
         )
         self.X_unbinorized = X.copy()
         self.X = ml_models.binarize_data(X) if self.binarize_data else X.copy()
@@ -119,12 +109,6 @@ class MSA:
             h. Run the MSA algorithm.
             i. Update the progress bar.
         5. Save the attributes of the iterative MSA.
-
-        Parameters:
-            None
-
-        Returns:
-            None
         """
 
         self.root_gui.after(0, self.setup_progressbar)
@@ -156,9 +140,6 @@ class MSA:
 
         Parameters:
             roi (str): The name of the ROI to be added to the RoB region.
-
-        Returns:
-            None
         """
         new_rob_num_voxels_altered = (
             self.X_unbinorized["rob"] * self.voxels["rob"]
@@ -188,9 +169,6 @@ class MSA:
 
         Parameters:
             roi (str): The name of the ROI to be removed.
-
-        Returns:
-            None
         """
         self.voxels.drop(roi, inplace=True)
         self.X_unbinorized.drop(roi, axis=1, inplace=True)
