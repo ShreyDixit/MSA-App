@@ -16,10 +16,10 @@ class FakeEstimator:
 
 
 class TestMSA:
-    data_file_path = "data/example_data.xlsx"
-    voxels_file_path = "data/NumVoxels.xlsx"
-    y_column = "Y"
-    y_column_type = "NIHSS Score"
+    data_file_path = "data/roi_data.csv"
+    score_file_path = "data/nihss_scores.csv"
+    voxels_file_path = "data/num_voxels.csv"
+    is_score_performance = False
     root = ctk.CTk()
     progress_bar = ctk.CTkProgressBar(root)
     model_name = "Support Vector Regressor"
@@ -41,25 +41,27 @@ class TestMSA:
     voxels = pd.Series(data=[40, 20, 30, 40, 50, 60], index=elements)
 
     msa_instance_binarized = MSA(
-        data_file_path,
-        y_column,
-        y_column_type,
-        model_name,
-        voxels_file_path,
-        progress_bar,
-        root,
-        True,
+        data_file_path=data_file_path,
+        score_file_path=score_file_path,
+        model_name=model_name,
+        voxels_file_path=voxels_file_path,
+        progress_bar=progress_bar,
+        root=root,
+        is_score_performance=is_score_performance,
+        binarize_data=True,
+        run_interaction_2d=False,
     )
 
     msa_instance_unbinarized = MSA(
-        data_file_path,
-        y_column,
-        y_column_type,
-        model_name,
-        voxels_file_path,
-        progress_bar,
-        root,
-        False,
+        data_file_path=data_file_path,
+        score_file_path=score_file_path,
+        model_name=model_name,
+        voxels_file_path=voxels_file_path,
+        progress_bar=progress_bar,
+        root=root,
+        is_score_performance=is_score_performance,
+        binarize_data=False,
+        run_interaction_2d=False,
     )
 
     def _is_binary(self, df: pd.DataFrame):

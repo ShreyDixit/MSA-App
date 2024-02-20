@@ -54,7 +54,7 @@ models = {
     "Logistic Regression": Model_Collection(
         LogisticRegression, LogisticRegressionParams
     ),
-    "Supper Vector Regressor": Model_Collection(SVR, SupportVectorRegressionParams),
+    "Support Vector Regressor": Model_Collection(SVR, SupportVectorRegressionParams),
     "Support Vector Classifier": Model_Collection(SVC, SupportVectorClassifierParams),
     "Decision Tree Regressor": Model_Collection(
         DecisionTreeRegressor, DecisionTreeRegressorParams
@@ -67,53 +67,47 @@ models = {
 
 @typechecked
 def prepare_data(
+    *,
     data_file_path: str,
-    y_column: str,
-    y_column_type: str,
+    score_file_path: str,
     voxels_file_path: str,
+    is_score_performance: bool
 ) -> Tuple[pd.DataFrame, pd.Series, pd.Series]:
     """
-    Prepare the data for model training and evaluation.
+    Prepares the data for model training and evaluation by loading and processing data files, score files, and optionally voxel files.
 
     Parameters:
-        data_file_path (str): The path to the data file. The file can be in CSV or xlsx format. Data file contains the percentage of alteration of each brain ROI
-        y_column (str): The name of the column containing the target variable. It could be NIHSS Score, or the performance
-        y_column_type (str): The type of the target variable. Possible values are "NIHSS Score" or "Performance".
-        voxels_file_path (str): The path to the voxels file. The file can be in CSV or xlsx format. If not provided, the number of voxels for each ROI will be set to 1.
+        data_file_path (str): Path to the data file, which should contain the percentage alteration of each brain ROI. Supports CSV or Excel formats.
+        score_file_path (str): Path to the file containing scores (e.g., NIHSS Scores or performance metrics). Supports CSV or Excel formats.
+        voxels_file_path (str, optional): Path to the voxels file, providing the number of voxels for each ROI. Supports CSV or Excel formats. If not provided, the number of voxels for each ROI is set to 1.
+        is_score_performance (bool): If True, the scores are considered as performance scores and are transformed accordingly; otherwise, they are treated directly as NIHSS Scores or similar clinical metrics.
 
     Returns:
-        Tuple[pd.DataFrame, pd.Series, pd.Series]: A tuple containing the following:
-            - X: The feature matrix as a pandas DataFrame.
-            - y: The target variable as a pandas Series.
-            - voxels: The voxels information as a pandas Series.
+        Tuple[pd.DataFrame, pd.Series, pd.Series]: A tuple containing the processed feature matrix (X), the target variable (y), and voxel information (voxels), all ready for use in model training and evaluation.
 
     Raises:
-        RuntimeError: If the data file extension is not CSV or xlsx.
-        AssertionError: If the data values are not between 0 and 1.
-        AssertionError: If the brain regions in the data file are different from the brain regions in the voxels file.
-        AssertionError: If the y_column does not exist in the data file.
-
+        RuntimeError: If the data file or score file extension is neither CSV nor Excel format.
+        AssertionError: If data values are not within the expected range (0 to 100 before normalization).
+        AssertionError: If there is a mismatch in the number of records between the data and score files.
+        AssertionError: If the set of brain regions in the data file differs from that in the voxels file (when provided).
     """
     data_file_path, data_file_extension = process_path(data_file_path)
+    score_file_path, score_file_extension = process_path(score_file_path)
 
-    if data_file_extension == ".csv":
-        data = pd.read_csv(data_file_path)
-    else:
-        data = pd.read_excel(data_file_path)
-
-    X = data.drop(y_column, axis=1) / 100
+    X = read_file(data_file_path, data_file_extension, is_voxel_file=False) / 100
+    y = read_file(score_file_path, score_file_extension, is_voxel_file=False).iloc[:, 0]
 
     assert (
         np.max(X.values) <= 1 and np.min(X.values) >= 0
     ), "Data should be percentage of alteration in ROI, i.e. between 0 and 100"
 
+    assert len(X) == len(
+        y
+    ), "Mismatch in number of patients between Data and Scores Files"
+
     if voxels_file_path:
         voxels_file_path, voxels_file_extension = process_path(voxels_file_path)
-        if voxels_file_extension == ".csv":
-            voxels = pd.read_csv(voxels_file_path, header=None)
-        else:
-            voxels = pd.read_excel(voxels_file_path, header=None)
-        voxels = pd.Series(voxels[1].values, index=voxels[0])
+        voxels = read_file(voxels_file_path, voxels_file_extension, is_voxel_file=True)
 
         assert set(X.columns) == set(
             voxels.index
@@ -125,14 +119,35 @@ def prepare_data(
         X["rob"] = 0
         voxels["rob"] = 0
 
-    assert y_column in data.columns, f"Column {y_column} doesn't exist in data file"
+    X.columns = X.columns.str.lower()
+    voxels.index = voxels.index.str.lower()
 
-    y = data[y_column]
-
-    # Y should be converted to performance in case it is NIHSS Score
-    y = y.max() - y if y_column_type == "NIHSS Score" else y
+    y = y if is_score_performance else y.max() - y
 
     return X, y, voxels
+
+
+@typechecked
+def read_file(data_file_path: str, data_file_extension: str, is_voxel_file: bool):
+    """
+    Reads data from a file and returns it as a pandas DataFrame or Series, depending on the file type.
+
+    Parameters:
+        data_file_path (str): The path to the file to be read.
+        data_file_extension (str): The extension of the file, used to determine the appropriate read method.
+        is_voxel_file (bool): Flag indicating whether the file is a voxel file. Affects the structure of the returned data.
+
+    Returns:
+        pd.DataFrame or pd.Series: The data read from the file. Returns a Series if reading a voxel file; otherwise, returns a DataFrame.
+    """
+    header = None if is_voxel_file else "infer"
+
+    if data_file_extension == ".csv":
+        data = pd.read_csv(data_file_path, header=header)
+    else:
+        data = pd.read_excel(data_file_path, header=header)
+
+    return pd.Series(data[1].values, index=data[0]) if is_voxel_file else data
 
 
 @typechecked
@@ -155,6 +170,18 @@ def binarize_data(X: pd.DataFrame) -> pd.DataFrame:
 
 @typechecked
 def process_path(data_file_path: str) -> Tuple[str, str]:
+    """
+    Normalizes the file path and extracts the file extension to ensure it is a supported format (.csv or .xlsx).
+
+    Parameters:
+        data_file_path (str): The path to the file.
+
+    Returns:
+        Tuple[str, str]: The normalized file path and its extension.
+
+    Raises:
+        RuntimeError: If the file extension is not supported (.csv or .xlsx).
+    """
     data_file_path = os.path.normpath(data_file_path)
     data_file_extension = os.path.splitext(data_file_path)[1]
     if data_file_extension not in (".csv", ".xlsx"):
@@ -168,7 +195,20 @@ def process_path(data_file_path: str) -> Tuple[str, str]:
 def train_model(
     model_name: str, X: pd.DataFrame, y: pd.Series
 ) -> Tuple[float, float, RandomizedSearchCV]:
+    """
+    Trains a machine learning model using randomized search over a predefined hyperparameter space and evaluates its performance.
 
+    Parameters:
+        model_name (str): The name of the model to be trained, as defined in the global 'models' dictionary.
+        X (pd.DataFrame): The feature matrix for training the model.
+        y (pd.Series): The target variable.
+
+    Returns:
+        Tuple[float, float, RandomizedSearchCV]: The accuracy score, F1 score, and the trained RandomizedSearchCV object.
+
+    Raises:
+        AssertionError: If the input data X is not normalized between 0 and 1.
+    """
     assert (
         np.max(X.values) <= 1 and np.min(X.values) >= 0
     ), "Data passed is not beween 1 and 0. There is some error somewhere!"
