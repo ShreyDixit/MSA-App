@@ -234,7 +234,7 @@ class MSA:
         x = pd.Series(np.zeros_like(self.X.iloc[0]), index=self.X.columns)
         if complement:
             x[list(complement)] = 1
-        return np.maximum(0, self.trained_model.predict(x.values.reshape(1, -1)))[0]
+        return np.maximum(0, self.trained_model.predict(x.values.reshape(1, -1))).astype(float)[0]
 
     def save_iterative(self):
         save_dict = {
