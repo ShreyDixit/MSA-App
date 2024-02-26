@@ -13,6 +13,7 @@ class GUI:
         self.configure_root()
         self.initialize_variables()
         self.create_widget()
+        self.advanced_options = AdvancedOptions(self.root)
 
     def initialize_variables(self):
         self.data_file_path = ctk.StringVar()
@@ -205,6 +206,17 @@ class GUI:
         )
         self.text.grid(row=9, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
 
+        # Advanced Options Toggle
+        self.advanced_toggle_text = ctk.StringVar(value="Advanced Options  +")
+        self.advanced_toggle_label = ctk.CTkLabel(
+            self.root,
+            textvariable=self.advanced_toggle_text,
+            font=("Helvetica", 18),
+            cursor="hand2",  # Change cursor to indicate clickable
+        )
+        self.advanced_toggle_label.grid(row=10, column=0, pady=10, padx=10, sticky="w")
+        self.advanced_toggle_label.bind("<Button-1>", self.toggle_advanced_options)
+
     def browse_file(self, path_var: ctk.StringVar):
         file_path = filedialog.askopenfilename()
         if file_path:
@@ -223,6 +235,20 @@ class GUI:
         file_path = filedialog.askdirectory()
         if file_path:
             self.output_folder_path.set(file_path)
+
+    def toggle_advanced_options(self, event=None):
+        if self.advanced_options.frame.winfo_ismapped():
+            self.advanced_toggle_text.set(
+                "Advanced Options  +"
+            )  # Show plus symbol when hidden
+            self.advanced_options.frame.grid_remove()
+            self.root.geometry("600x800")
+        else:
+            self.advanced_toggle_text.set(
+                "Advanced Options  -"
+            )  # Show minus symbol when visible
+            self.advanced_options.frame.grid()
+            self.root.geometry("600x900")
 
     def click_run_button(self):
         if not self.run_iterative_var.get():
@@ -277,3 +303,31 @@ class GUI:
             self.text.insert("end", "Finished Running Network Interaction\n")
 
         self.text.insert("end", "Saved Results\n")
+
+
+class AdvancedOptions:
+    def __init__(self, parent):
+        self.frame = ctk.CTkFrame(parent)
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Example advanced option: Number of Iterations for Randomized Search
+        self.n_iterations_label = ctk.CTkLabel(
+            self.frame, text="N Iterations:", font=("Helvetica", 18)
+        )
+        self.n_iterations_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
+
+        self.n_iterations_entry = ctk.CTkEntry(
+            self.frame, width=100, font=("Helvetica", 18)
+        )
+        self.n_iterations_entry.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+
+        self.n_iterations_label_1 = ctk.CTkLabel(
+            self.frame, text="N Iterations:", font=("Helvetica", 18)
+        )
+        self.n_iterations_label_1.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+
+        self.n_iterations_entry_2 = ctk.CTkEntry(
+            self.frame, width=100, font=("Helvetica", 18)
+        )
+        self.n_iterations_entry_2.grid(row=1, column=1, padx=5, pady=5, sticky="w")
