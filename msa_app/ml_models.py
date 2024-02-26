@@ -219,6 +219,8 @@ def train_model(
         model_collection.hyperparameters,
         cv=4,
         n_iter=200,
+        n_jobs=-1,
+        verbose=2,
     )
     opt.fit(X.values, y)
     y_pred = np.rint(opt.predict(X.values))
