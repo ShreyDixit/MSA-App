@@ -35,7 +35,7 @@ class GUI:
 
         self.browse_button_data_file = ctk.CTkButton(
             self.root,
-            text="Upload Data File",
+            text="Upload Lesion Data",
             command=self.browse_data_file,
             font=("Helvetica", 18),
         )
