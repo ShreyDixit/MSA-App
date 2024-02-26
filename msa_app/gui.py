@@ -34,78 +34,84 @@ class GUI:
         # Function to handle the file upload
         self.root.grid_columnconfigure((0, 1), weight=1)
 
-        self.browse_button_data_file = ctk.CTkButton(
+        self.setup_roi_file()
+        self.setup_score_file()
+        self.setup_voxels_file()
+        self.setup_ml_models()
+        self.setup_optional_checkboxes()
+        self.setup_output_folder()
+        self.setup_msa_button()
+        self.setup_progressbar()
+        self.setup_output_textbox()
+        self.setup_advanced_toolboxes()
+
+    def setup_advanced_toolboxes(self):
+        self.advanced_toggle_text = ctk.StringVar(value="Advanced Options  +")
+        self.advanced_toggle_label = ctk.CTkLabel(
             self.root,
-            text="Upload Lesion Data",
-            command=self.browse_data_file,
+            textvariable=self.advanced_toggle_text,
+            font=("Helvetica", 18),
+            cursor="hand2",  # Change cursor to indicate clickable
+        )
+        self.advanced_toggle_label.grid(row=10, column=0, pady=10, padx=10, sticky="w")
+        self.advanced_toggle_label.bind("<Button-1>", self.toggle_advanced_options)
+
+    def setup_output_textbox(self):
+        self.text = ctk.CTkTextbox(
+            self.root,
+            height=150,
+            border_width=4,
+            border_color="#003660",
+            border_spacing=10,
+            fg_color="silver",
+            text_color="black",
+            font=("Helvetica", 18),
+            wrap="word",  # Char default, word, none
+            activate_scrollbars=True,
+            scrollbar_button_color="blue",
+            scrollbar_button_hover_color="red",
+        )
+        self.text.grid(row=9, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
+
+    def setup_progressbar(self):
+        self.progress_bar = ctk.CTkProgressBar(self.root, mode="indeterminate")
+        self.progress_bar.grid(
+            row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+        )
+
+    def setup_msa_button(self):
+        self.msa_button = ctk.CTkButton(
+            self.root,
+            text="Run MSA",
+            command=self.click_run_button,
             font=("Helvetica", 18),
         )
-        self.browse_button_data_file.grid(row=0, column=0, pady=20, padx=10, sticky="w")
+        self.msa_button.grid(
+            row=7, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+        )
+
+    def setup_output_folder(self):
+        self.browse_button_output_folder = ctk.CTkButton(
+            self.root,
+            text="Choose Output Folder",
+            command=self.browse_output_folder,
+            font=("Helvetica", 18),
+        )
+        self.browse_button_output_folder.grid(
+            row=6, column=0, pady=20, padx=10, sticky="w"
+        )
 
         # Entry widget to display the file path
-        self.data_file_entry = ctk.CTkEntry(
+        self.output_folder_entry = ctk.CTkEntry(
             self.root,
-            textvariable=self.data_file_path,
+            textvariable=self.output_folder_path,
             state="readonly",
             width=200,
             font=("Helvetica", 18),
         )
-        self.data_file_entry.grid(row=0, column=1, padx=10, sticky="e")
+        self.output_folder_entry.grid(row=6, column=1, padx=10, sticky="e")
 
-        self.browse_button_score_file = ctk.CTkButton(
-            self.root,
-            text="Upload Score File",
-            command=self.browse_score_file,
-            font=("Helvetica", 18),
-        )
-        self.browse_button_score_file.grid(
-            row=1, column=0, pady=20, padx=10, sticky="w"
-        )
-
-        # Entry widget to display the file path
-        self.score_file_entry = ctk.CTkEntry(
-            self.root,
-            textvariable=self.score_file_path,
-            state="readonly",
-            width=200,
-            font=("Helvetica", 18),
-        )
-        self.score_file_entry.grid(row=1, column=1, padx=10, sticky="e")
-
-        self.browse_button_voxels_file = ctk.CTkButton(
-            self.root,
-            text="Upload Voxels File (Optional)",
-            command=self.browse_voxels_file,
-            font=("Helvetica", 18),
-        )
-        self.browse_button_voxels_file.grid(
-            row=2, column=0, pady=20, padx=10, sticky="w"
-        )
-
-        # Entry widget to display the file path
-        self.voxels_file_entry = ctk.CTkEntry(
-            self.root,
-            textvariable=self.voxels_file_path,
-            state="readonly",
-            width=200,
-            font=("Helvetica", 18),
-        )
-        self.voxels_file_entry.grid(row=2, column=1, padx=10, sticky="e")
-
-        self.ml_model_label = ctk.CTkLabel(
-            self.root, text="Machine Learning Model: ", font=("Helvetica", 18)
-        )
-        self.ml_model_label.grid(row=3, column=0, padx=10, sticky="w")
-
-        self.ml_model_combobox = ctk.CTkComboBox(
-            self.root,
-            values=list(ml_models.models.keys()),
-            variable=self.ml_model,
-            width=300,
-            font=("Helvetica", 18),
-        )
-        self.ml_model_combobox.grid(row=3, column=1, padx=10, sticky="e")
-
+    def setup_optional_checkboxes(self):
         self.run_iterative_checkbox = ctk.CTkSwitch(
             self.root,
             onvalue=1,
@@ -154,68 +160,81 @@ class GUI:
             row=5, column=1, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
-        self.browse_button_output_folder = ctk.CTkButton(
+    def setup_ml_models(self):
+        self.ml_model_label = ctk.CTkLabel(
+            self.root, text="Machine Learning Model: ", font=("Helvetica", 18)
+        )
+        self.ml_model_label.grid(row=3, column=0, padx=10, sticky="w")
+
+        self.ml_model_combobox = ctk.CTkComboBox(
             self.root,
-            text="Choose Output Folder",
-            command=self.browse_output_folder,
+            values=list(ml_models.models.keys()),
+            variable=self.ml_model,
+            width=300,
             font=("Helvetica", 18),
         )
-        self.browse_button_output_folder.grid(
-            row=6, column=0, pady=20, padx=10, sticky="w"
+        self.ml_model_combobox.grid(row=3, column=1, padx=10, sticky="e")
+
+    def setup_voxels_file(self):
+        self.browse_button_voxels_file = ctk.CTkButton(
+            self.root,
+            text="Upload Voxels File (Optional)",
+            command=self.browse_voxels_file,
+            font=("Helvetica", 18),
+        )
+        self.browse_button_voxels_file.grid(
+            row=2, column=0, pady=20, padx=10, sticky="w"
         )
 
         # Entry widget to display the file path
-        self.output_folder_entry = ctk.CTkEntry(
+        self.voxels_file_entry = ctk.CTkEntry(
             self.root,
-            textvariable=self.output_folder_path,
+            textvariable=self.voxels_file_path,
             state="readonly",
             width=200,
             font=("Helvetica", 18),
         )
-        self.output_folder_entry.grid(row=6, column=1, padx=10, sticky="e")
+        self.voxels_file_entry.grid(row=2, column=1, padx=10, sticky="e")
 
-        # Submit button
-        self.msa_button = ctk.CTkButton(
+    def setup_score_file(self):
+        self.browse_button_score_file = ctk.CTkButton(
             self.root,
-            text="Run MSA",
-            command=self.click_run_button,
+            text="Upload Score File",
+            command=self.browse_score_file,
             font=("Helvetica", 18),
         )
-        self.msa_button.grid(
-            row=7, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+        self.browse_button_score_file.grid(
+            row=1, column=0, pady=20, padx=10, sticky="w"
         )
 
-        self.progress_bar = ctk.CTkProgressBar(self.root, mode="indeterminate")
-        self.progress_bar.grid(
-            row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
-        )
-
-        self.text = ctk.CTkTextbox(
+        # Entry widget to display the file path
+        self.score_file_entry = ctk.CTkEntry(
             self.root,
-            height=150,
-            border_width=4,
-            border_color="#003660",
-            border_spacing=10,
-            fg_color="silver",
-            text_color="black",
+            textvariable=self.score_file_path,
+            state="readonly",
+            width=200,
             font=("Helvetica", 18),
-            wrap="word",  # Char default, word, none
-            activate_scrollbars=True,
-            scrollbar_button_color="blue",
-            scrollbar_button_hover_color="red",
         )
-        self.text.grid(row=9, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
+        self.score_file_entry.grid(row=1, column=1, padx=10, sticky="e")
 
-        # Advanced Options Toggle
-        self.advanced_toggle_text = ctk.StringVar(value="Advanced Options  +")
-        self.advanced_toggle_label = ctk.CTkLabel(
+    def setup_roi_file(self):
+        self.browse_button_data_file = ctk.CTkButton(
             self.root,
-            textvariable=self.advanced_toggle_text,
+            text="Upload Lesion Data",
+            command=self.browse_data_file,
             font=("Helvetica", 18),
-            cursor="hand2",  # Change cursor to indicate clickable
         )
-        self.advanced_toggle_label.grid(row=10, column=0, pady=10, padx=10, sticky="w")
-        self.advanced_toggle_label.bind("<Button-1>", self.toggle_advanced_options)
+        self.browse_button_data_file.grid(row=0, column=0, pady=20, padx=10, sticky="w")
+
+        # Entry widget to display the file path
+        self.data_file_entry = ctk.CTkEntry(
+            self.root,
+            textvariable=self.data_file_path,
+            state="readonly",
+            width=200,
+            font=("Helvetica", 18),
+        )
+        self.data_file_entry.grid(row=0, column=1, padx=10, sticky="e")
 
     def browse_file(self, path_var: ctk.StringVar):
         file_path = filedialog.askopenfilename()
