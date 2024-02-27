@@ -24,7 +24,7 @@ class GUI:
         self.run_network_interaction_2d_var = ctk.IntVar()
         self.binarize_data_var = ctk.IntVar()
         self.run_iterative_var = ctk.IntVar()
-        self.is_score_performance = ctk.IntVar()
+        self.score_type_var = ctk.StringVar(value="Deficit")
 
     def configure_root(self):
         self.root.geometry("600x800")
@@ -37,6 +37,7 @@ class GUI:
         self.setup_roi_file()
         self.setup_score_file()
         self.setup_voxels_file()
+        self.setup_score_type()
         self.setup_ml_models()
         self.setup_optional_checkboxes()
         self.setup_output_folder()
@@ -44,6 +45,21 @@ class GUI:
         self.setup_progressbar()
         self.setup_output_textbox()
         self.setup_advanced_toolboxes()
+
+    def setup_score_type(self):
+        self.score_type_label = ctk.CTkButton(
+            self.root,
+            text="Type of Score: ",
+            command=self.browse_data_file,
+            font=("Helvetica", 18),
+        )
+        self.score_type_label.grid(row=3, column=0, pady=20, padx=10, sticky="w")
+
+        self.segemented_button = ctk.CTkSegmentedButton(self.root, values=["Deficit", "Performance"],
+                                                     variable=self.score_type_var, font=("Helvetica", 18))
+        self.segemented_button.grid(
+            row=3, column=1, columnspan=2, pady=20, padx=10, sticky="ew"
+        )
 
     def setup_advanced_toolboxes(self):
         self.advanced_toggle_text = ctk.StringVar(value="Advanced Options  +")
@@ -53,7 +69,7 @@ class GUI:
             font=("Helvetica", 18),
             cursor="hand2",  # Change cursor to indicate clickable
         )
-        self.advanced_toggle_label.grid(row=10, column=0, pady=10, padx=10, sticky="w")
+        self.advanced_toggle_label.grid(row=11, column=0, pady=10, padx=10, sticky="w")
         self.advanced_toggle_label.bind("<Button-1>", self.toggle_advanced_options)
 
     def setup_output_textbox(self):
@@ -71,12 +87,12 @@ class GUI:
             scrollbar_button_color="blue",
             scrollbar_button_hover_color="red",
         )
-        self.text.grid(row=9, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
+        self.text.grid(row=10, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
 
     def setup_progressbar(self):
         self.progress_bar = ctk.CTkProgressBar(self.root, mode="indeterminate")
         self.progress_bar.grid(
-            row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=9, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
     def setup_msa_button(self):
@@ -87,7 +103,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.msa_button.grid(
-            row=7, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
     def setup_output_folder(self):
@@ -98,7 +114,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.browse_button_output_folder.grid(
-            row=6, column=0, pady=20, padx=10, sticky="w"
+            row=7, column=0, pady=20, padx=10, sticky="w"
         )
 
         # Entry widget to display the file path
@@ -109,7 +125,7 @@ class GUI:
             width=200,
             font=("Helvetica", 18),
         )
-        self.output_folder_entry.grid(row=6, column=1, padx=10, sticky="e")
+        self.output_folder_entry.grid(row=7, column=1, padx=10, sticky="e")
 
     def setup_optional_checkboxes(self):
         self.run_iterative_checkbox = ctk.CTkSwitch(
@@ -121,7 +137,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.run_iterative_checkbox.grid(
-            row=4, column=0, columnspan=1, pady=20, padx=10, sticky="ew"
+            row=5, column=0, columnspan=1, pady=20, padx=10, sticky="ew"
         )
 
         self.run_network_interaction_2d_checkbox = ctk.CTkSwitch(
@@ -133,7 +149,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.run_network_interaction_2d_checkbox.grid(
-            row=4, column=1, columnspan=1, pady=20, padx=10, sticky="ew"
+            row=5, column=1, columnspan=1, pady=20, padx=10, sticky="ew"
         )
 
         self.binarize_data_checkbox = ctk.CTkSwitch(
@@ -145,26 +161,14 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.binarize_data_checkbox.grid(
-            row=5, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
-        )
-
-        self.binarize_data_checkbox = ctk.CTkSwitch(
-            self.root,
-            onvalue=1,
-            offvalue=0,
-            text="Is Score Performance?",
-            variable=self.is_score_performance,
-            font=("Helvetica", 18),
-        )
-        self.binarize_data_checkbox.grid(
-            row=5, column=1, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=6, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
         )
 
     def setup_ml_models(self):
         self.ml_model_label = ctk.CTkLabel(
             self.root, text="Machine Learning Model: ", font=("Helvetica", 18)
         )
-        self.ml_model_label.grid(row=3, column=0, padx=10, sticky="w")
+        self.ml_model_label.grid(row=4, column=0, padx=10, sticky="w")
 
         self.ml_model_combobox = ctk.CTkComboBox(
             self.root,
@@ -173,7 +177,7 @@ class GUI:
             width=300,
             font=("Helvetica", 18),
         )
-        self.ml_model_combobox.grid(row=3, column=1, padx=10, sticky="e")
+        self.ml_model_combobox.grid(row=4, column=1, padx=10, sticky="e")
 
     def setup_voxels_file(self):
         self.browse_button_voxels_file = ctk.CTkButton(
@@ -298,7 +302,7 @@ class GUI:
             root=self.root,
             binarize_data=bool(self.binarize_data_var.get()),
             run_interaction_2d=bool(self.run_network_interaction_2d_var.get()),
-            is_score_performance=bool(self.is_score_performance.get()),
+            is_score_performance=self.score_type_var.get() == "Performance",
         )
         msa.prepare_data()
         self.text.insert("end", "Prepared Data\n")
