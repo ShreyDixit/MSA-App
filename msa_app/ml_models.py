@@ -140,7 +140,7 @@ def read_file(data_file_path: str, data_file_extension: str, is_voxel_file: bool
     Returns:
         pd.DataFrame or pd.Series: The data read from the file. Returns a Series if reading a voxel file; otherwise, returns a DataFrame.
     """
-    header = None if is_voxel_file else "infer"
+    header = None if is_voxel_file else 0
 
     if data_file_extension == ".csv":
         data = pd.read_csv(data_file_path, header=header)
