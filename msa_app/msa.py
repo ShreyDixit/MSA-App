@@ -224,7 +224,7 @@ class MSA:
         all_pairs = list(combinations(self.elements, 2))
         self.progress_bar_step = 1 / len(all_pairs)
 
-        self.interactions = 0
+        self.interactions = np.zeros((len(self.elements), len(self.elements)))
 
         for pair in all_pairs:
             self.interactions += msa.network_interaction_2d(
@@ -267,6 +267,13 @@ class MSA:
             os.path.join(output_folder, f"shapley_values_iterative_{saving_time}.csv"), header=None
         )
 
+        self.save_network_interaction(output_folder, saving_time)
+
+    def save_network_interaction(self, output_folder, saving_time):
+        if hasattr(self, "interactions"):
+            df = pd.DataFrame(self.interactions, index=self.elements, columns=self.elements)
+            df.to_csv(os.path.join(output_folder, f"network_interaction_{saving_time}.csv"))
+
     def save(self, output_folder: str):
         save_dict = {
             "shapley_values": self.shapley_table.shapley_values.to_dict(),
@@ -284,6 +291,8 @@ class MSA:
         self.shapley_table.shapley_values.to_csv(
             os.path.join(output_folder, f"shapley_values_{saving_time}.csv"), header=None
         )
+
+        self.save_network_interaction(output_folder, saving_time)
 
     @typechecked
     def plot_msa(self, iterative: bool = False):
@@ -313,8 +322,12 @@ class MSA:
 
     def plot_network_interaction(self):
         # Plotting the heatmap
+
+        vmax = np.max(np.abs(self.interactions))  # Find the maximum absolute value in the data
+        vmin = -vmax  # Set vmin to the negative of vmax to center the colormap at 0
+
         plt.figure(figsize=(10, 10))
-        plt.imshow(self.interactions, cmap="RdBu", interpolation="nearest")
+        plt.imshow(self.interactions, cmap="RdBu_r", interpolation="nearest", vmin=vmin, vmax=vmax)
         plt.xticks(np.arange(len(self.elements)), self.elements, rotation=75)
         plt.yticks(np.arange(len(self.elements)), self.elements)
         plt.colorbar()  # Display color bar

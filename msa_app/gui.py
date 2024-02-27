@@ -314,11 +314,9 @@ class GUI:
         if self.run_iterative_var.get():
             self.text.insert("end", "Running Iterative MSA\n")
             msa.run_iterative_msa()
-            msa.save_iterative(self.output_folder_path.get())
         else:
             msa.run_msa()
             self.text.insert("end", "Running MSA\n")
-            msa.save(self.output_folder_path.get())
 
         msa.plot_msa(bool(self.run_iterative_var.get()))
 
@@ -326,6 +324,12 @@ class GUI:
             self.text.insert("end", "Running Network Interaction\n")
             msa.run_interaction_2d()
             msa.plot_network_interaction()
+
+        if self.run_iterative_var.get():
+            msa.save_iterative(self.output_folder_path.get())
+        else:
+            msa.save(self.output_folder_path.get())
+        
 
         self.text.insert("end", "Saved Results\n")
 
