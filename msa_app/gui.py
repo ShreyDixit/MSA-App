@@ -291,7 +291,7 @@ class GUI:
             self.progress_bar.stop()
 
     def call_msa_pipline(self):
-        self.text.insert("end", "Running MSA\n")
+        self.text.insert("end", "Preparing Data\n")
         self.msa_button.configure(state="disabled")
         msa = MSA(
             data_file_path=self.data_file_path.get(),
@@ -307,25 +307,25 @@ class GUI:
             num_permutation=self.advanced_options.num_permutation_var.get()
         )
         msa.prepare_data()
-        self.text.insert("end", "Prepared Data\n")
+        self.text.insert("end", "Training Model\n")
 
         msa.train_model()
 
         if self.run_iterative_var.get():
+            self.text.insert("end", "Running Iterative MSA\n")
             msa.run_iterative_msa()
-            self.text.insert("end", "Finished Running Iterative MSA\n")
             msa.save_iterative(self.output_folder_path.get())
         else:
             msa.run_msa()
-            self.text.insert("end", "Finished Running MSA\n")
+            self.text.insert("end", "Running MSA\n")
             msa.save(self.output_folder_path.get())
 
         msa.plot_msa(bool(self.run_iterative_var.get()))
 
         if self.run_network_interaction_2d_var.get():
+            self.text.insert("end", "Running Network Interaction\n")
             msa.run_interaction_2d()
             msa.plot_network_interaction()
-            self.text.insert("end", "Finished Running Network Interaction\n")
 
         self.text.insert("end", "Saved Results\n")
 
@@ -333,7 +333,7 @@ class GUI:
 class AdvancedOptions:
     def __init__(self, parent):
         self.frame = ctk.CTkFrame(parent)
-        self.random_seed_var = ctk.IntVar(value=28101999)
+        self.random_seed_var = ctk.IntVar(value=2810)
         self.num_permutation_var = ctk.IntVar(value=1000)
         self.create_widgets()
 
