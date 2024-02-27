@@ -26,6 +26,7 @@ class MSA:
         binarize_data: bool,
         is_score_performance: bool,
         run_interaction_2d: bool,
+        random_seed: int,
     ):
         """
         Initialize the MSA object with data paths, model information, and GUI components.
@@ -40,6 +41,7 @@ class MSA:
             binarize_data (bool): Flag indicating whether the input data should be binarized.
             is_score_performance (bool): Flag indicating if the score represents a performance metric that doesn't need inversion.
             run_interaction_2d (bool): Flag indicating whether to run 2D network interaction analysis.
+            random_seed (int): The Random Seed?
         """
 
         self.data_file_path = data_file_path
@@ -50,13 +52,14 @@ class MSA:
         self.root_gui = root
         self.binarize_data = binarize_data
         self.is_performance_score = is_score_performance
+        self.random_seed = random_seed
         self.n_permutation = 1000
         self.smallest_set_of_roi = 6 if run_interaction_2d else 3
         self.RoB = []
 
     def train_model(self):
         accuracy, f1, trained_model = ml_models.train_model(
-            model_name=self.model_name, X=self.X, y=self.y
+            model_name=self.model_name, X=self.X, y=self.y, random_seed=self.random_seed
         )
         self.accuracy = accuracy
         self.f1 = f1
@@ -89,6 +92,7 @@ class MSA:
             n_permutations=self.n_permutation,
             elements=list(self.X.columns),
             objective_function=self.objective_function,
+            random_seed=self.random_seed
         )
 
     def run_iterative_msa(self):
@@ -227,6 +231,7 @@ class MSA:
                 objective_function=self.objective_function,
                 pairs=[pair],
                 lazy=True,
+                random_seed=self.random_seed
             )
             self.update_progressbar()
 

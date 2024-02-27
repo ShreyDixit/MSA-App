@@ -103,7 +103,7 @@ class TestModelTraining:
         y = pd.Series(np.random.randint(0, 2, 100))
 
         # Act
-        accuracy, f1, opt = train_model(model_name, X, y)
+        accuracy, f1, opt = train_model(model_name, X, y, random_seed=42)
 
         # Assert
         assert isinstance(accuracy, float)
@@ -118,7 +118,7 @@ class TestModelTraining:
 
         # Act and Assert
         with pytest.raises(TypeError):
-            train_model(model_name, X, y)
+            train_model(model_name, X, y, random_seed=42)
 
     def test_train_model_key_error(self):
         # Arrange
@@ -128,7 +128,7 @@ class TestModelTraining:
 
         # Act and Assert
         with pytest.raises(KeyError):
-            train_model(model_name, X, y)
+            train_model(model_name, X, y, random_seed=42)
 
     def test_train_model_assertion_error(self):
         # Arrange
@@ -138,7 +138,7 @@ class TestModelTraining:
 
         # Act and Assert
         with pytest.raises(AssertionError):
-            train_model(model_name, X, y)
+            train_model(model_name, X, y, random_seed=42)
 
 
 class TestPrepareData:

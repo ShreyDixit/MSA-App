@@ -27,7 +27,7 @@ class GUI:
         self.score_type_var = ctk.StringVar(value="Deficit")
 
     def configure_root(self):
-        self.root.geometry("600x800")
+        self.root.geometry("600x850")
         self.root.title("Lesion-Symptom Mapping using MSA")
 
     def create_widget(self):
@@ -265,13 +265,13 @@ class GUI:
                 "Advanced Options  +"
             )  # Show plus symbol when hidden
             self.advanced_options.frame.grid_remove()
-            self.root.geometry("600x800")
+            self.root.geometry("600x850")
         else:
             self.advanced_toggle_text.set(
                 "Advanced Options  -"
             )  # Show minus symbol when visible
             self.advanced_options.frame.grid()
-            self.root.geometry("600x900")
+            self.root.geometry("600x950")
 
     def click_run_button(self):
         if not self.run_iterative_var.get():
@@ -303,6 +303,7 @@ class GUI:
             binarize_data=bool(self.binarize_data_var.get()),
             run_interaction_2d=bool(self.run_network_interaction_2d_var.get()),
             is_score_performance=self.score_type_var.get() == "Performance",
+            random_seed=self.advanced_options.random_seed_var.get()
         )
         msa.prepare_data()
         self.text.insert("end", "Prepared Data\n")
@@ -331,26 +332,18 @@ class GUI:
 class AdvancedOptions:
     def __init__(self, parent):
         self.frame = ctk.CTkFrame(parent)
+        self.random_seed_var = ctk.IntVar(value=28101999)
         self.create_widgets()
 
     def create_widgets(self):
+        self.frame.grid_columnconfigure((0, 1), weight=1)
         # Example advanced option: Number of Iterations for Randomized Search
-        self.n_iterations_label = ctk.CTkLabel(
-            self.frame, text="N Iterations:", font=("Helvetica", 18)
+        self.random_seed_label = ctk.CTkLabel(
+            self.frame, text="Random Seed: ", font=("Helvetica", 18)
         )
-        self.n_iterations_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.random_seed_label.grid(row=0, column=0, padx=10, sticky="w")
 
-        self.n_iterations_entry = ctk.CTkEntry(
-            self.frame, width=100, font=("Helvetica", 18)
+        self.random_seed_entry = ctk.CTkEntry(
+            self.frame, width=100, font=("Helvetica", 18), textvariable=self.random_seed_var
         )
-        self.n_iterations_entry.grid(row=0, column=1, padx=5, pady=5, sticky="w")
-
-        self.n_iterations_label_1 = ctk.CTkLabel(
-            self.frame, text="N Iterations:", font=("Helvetica", 18)
-        )
-        self.n_iterations_label_1.grid(row=1, column=0, padx=5, pady=5, sticky="w")
-
-        self.n_iterations_entry_2 = ctk.CTkEntry(
-            self.frame, width=100, font=("Helvetica", 18)
-        )
-        self.n_iterations_entry_2.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+        self.random_seed_entry.grid(row=0, column=1, padx=10, sticky="e")

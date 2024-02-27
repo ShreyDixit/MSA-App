@@ -193,7 +193,7 @@ def process_path(data_file_path: str) -> Tuple[str, str]:
 
 @typechecked
 def train_model(
-    model_name: str, X: pd.DataFrame, y: pd.Series
+    model_name: str, X: pd.DataFrame, y: pd.Series, random_seed: int
 ) -> Tuple[float, float, RandomizedSearchCV]:
     """
     Trains a machine learning model using randomized search over a predefined hyperparameter space and evaluates its performance.
@@ -202,6 +202,7 @@ def train_model(
         model_name (str): The name of the model to be trained, as defined in the global 'models' dictionary.
         X (pd.DataFrame): The feature matrix for training the model.
         y (pd.Series): The target variable.
+        random_seed (int): The Random Seed?
 
     Returns:
         Tuple[float, float, RandomizedSearchCV]: The accuracy score, F1 score, and the trained RandomizedSearchCV object.
@@ -221,6 +222,7 @@ def train_model(
         n_iter=200,
         n_jobs=-1,
         verbose=2,
+        random_state=random_seed
     )
     opt.fit(X.values, y)
     y_pred = np.rint(opt.predict(X.values))
