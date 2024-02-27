@@ -264,7 +264,7 @@ class MSA:
             json.dump(save_dict, f, indent=4)
 
         self.shapley_table_iterative.shapley_values.to_csv(
-            os.path.join(output_folder, f"shapley_values_iterative_{saving_time}.csv")
+            os.path.join(output_folder, f"shapley_values_iterative_{saving_time}.csv"), header=None
         )
 
     def save(self, output_folder: str):
@@ -282,7 +282,7 @@ class MSA:
             json.dump(save_dict, f, indent=4)
 
         self.shapley_table.shapley_values.to_csv(
-            os.path.join(output_folder, f"shapley_values_{saving_time}.csv")
+            os.path.join(output_folder, f"shapley_values_{saving_time}.csv"), header=None
         )
 
     @typechecked
