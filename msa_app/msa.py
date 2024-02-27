@@ -26,6 +26,8 @@ class MSA:
         binarize_data: bool,
         is_score_performance: bool,
         run_interaction_2d: bool,
+        random_seed: int,
+        num_permutation: int
     ):
         """
         Initialize the MSA object with data paths, model information, and GUI components.
@@ -40,6 +42,8 @@ class MSA:
             binarize_data (bool): Flag indicating whether the input data should be binarized.
             is_score_performance (bool): Flag indicating if the score represents a performance metric that doesn't need inversion.
             run_interaction_2d (bool): Flag indicating whether to run 2D network interaction analysis.
+            random_seed (int): The Random Seed?
+            num_permutation (int): Number of Permutations for running the MSA
         """
 
         self.data_file_path = data_file_path
@@ -50,13 +54,14 @@ class MSA:
         self.root_gui = root
         self.binarize_data = binarize_data
         self.is_performance_score = is_score_performance
-        self.n_permutation = 1000
+        self.random_seed = random_seed
+        self.n_permutation = num_permutation
         self.smallest_set_of_roi = 6 if run_interaction_2d else 3
         self.RoB = []
 
     def train_model(self):
         accuracy, f1, trained_model = ml_models.train_model(
-            model_name=self.model_name, X=self.X, y=self.y
+            model_name=self.model_name, X=self.X, y=self.y, random_seed=self.random_seed
         )
         self.accuracy = accuracy
         self.f1 = f1
@@ -89,6 +94,7 @@ class MSA:
             n_permutations=self.n_permutation,
             elements=list(self.X.columns),
             objective_function=self.objective_function,
+            random_seed=self.random_seed
         )
 
     def run_iterative_msa(self):
@@ -218,7 +224,7 @@ class MSA:
         all_pairs = list(combinations(self.elements, 2))
         self.progress_bar_step = 1 / len(all_pairs)
 
-        self.interactions = 0
+        self.interactions = np.zeros((len(self.elements), len(self.elements)))
 
         for pair in all_pairs:
             self.interactions += msa.network_interaction_2d(
@@ -227,6 +233,7 @@ class MSA:
                 objective_function=self.objective_function,
                 pairs=[pair],
                 lazy=True,
+                random_seed=self.random_seed
             )
             self.update_progressbar()
 
@@ -257,8 +264,15 @@ class MSA:
             json.dump(save_dict, f, indent=4)
 
         self.shapley_table_iterative.shapley_values.to_csv(
-            os.path.join(output_folder, f"shapley_values_iterative_{saving_time}.csv")
+            os.path.join(output_folder, f"shapley_values_iterative_{saving_time}.csv"), header=None
         )
+
+        self.save_network_interaction(output_folder, saving_time)
+
+    def save_network_interaction(self, output_folder, saving_time):
+        if hasattr(self, "interactions"):
+            df = pd.DataFrame(self.interactions, index=self.elements, columns=self.elements)
+            df.to_csv(os.path.join(output_folder, f"network_interaction_{saving_time}.csv"))
 
     def save(self, output_folder: str):
         save_dict = {
@@ -275,8 +289,10 @@ class MSA:
             json.dump(save_dict, f, indent=4)
 
         self.shapley_table.shapley_values.to_csv(
-            os.path.join(output_folder, f"shapley_values_{saving_time}.csv")
+            os.path.join(output_folder, f"shapley_values_{saving_time}.csv"), header=None
         )
+
+        self.save_network_interaction(output_folder, saving_time)
 
     @typechecked
     def plot_msa(self, iterative: bool = False):
@@ -306,8 +322,12 @@ class MSA:
 
     def plot_network_interaction(self):
         # Plotting the heatmap
+
+        vmax = np.max(np.abs(self.interactions))  # Find the maximum absolute value in the data
+        vmin = -vmax  # Set vmin to the negative of vmax to center the colormap at 0
+
         plt.figure(figsize=(10, 10))
-        plt.imshow(self.interactions, cmap="RdBu", interpolation="nearest")
+        plt.imshow(self.interactions, cmap="RdBu_r", interpolation="nearest", vmin=vmin, vmax=vmax)
         plt.xticks(np.arange(len(self.elements)), self.elements, rotation=75)
         plt.yticks(np.arange(len(self.elements)), self.elements)
         plt.colorbar()  # Display color bar

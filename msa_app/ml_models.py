@@ -140,7 +140,7 @@ def read_file(data_file_path: str, data_file_extension: str, is_voxel_file: bool
     Returns:
         pd.DataFrame or pd.Series: The data read from the file. Returns a Series if reading a voxel file; otherwise, returns a DataFrame.
     """
-    header = None if is_voxel_file else "infer"
+    header = None if is_voxel_file else 0
 
     if data_file_extension == ".csv":
         data = pd.read_csv(data_file_path, header=header)
@@ -193,7 +193,7 @@ def process_path(data_file_path: str) -> Tuple[str, str]:
 
 @typechecked
 def train_model(
-    model_name: str, X: pd.DataFrame, y: pd.Series
+    model_name: str, X: pd.DataFrame, y: pd.Series, random_seed: int
 ) -> Tuple[float, float, RandomizedSearchCV]:
     """
     Trains a machine learning model using randomized search over a predefined hyperparameter space and evaluates its performance.
@@ -202,6 +202,7 @@ def train_model(
         model_name (str): The name of the model to be trained, as defined in the global 'models' dictionary.
         X (pd.DataFrame): The feature matrix for training the model.
         y (pd.Series): The target variable.
+        random_seed (int): The Random Seed?
 
     Returns:
         Tuple[float, float, RandomizedSearchCV]: The accuracy score, F1 score, and the trained RandomizedSearchCV object.
@@ -219,6 +220,9 @@ def train_model(
         model_collection.hyperparameters,
         cv=4,
         n_iter=200,
+        n_jobs=-1,
+        verbose=2,
+        random_state=random_seed
     )
     opt.fit(X.values, y)
     y_pred = np.rint(opt.predict(X.values))
