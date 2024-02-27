@@ -27,6 +27,7 @@ class MSA:
         is_score_performance: bool,
         run_interaction_2d: bool,
         random_seed: int,
+        num_permutation: int
     ):
         """
         Initialize the MSA object with data paths, model information, and GUI components.
@@ -42,6 +43,7 @@ class MSA:
             is_score_performance (bool): Flag indicating if the score represents a performance metric that doesn't need inversion.
             run_interaction_2d (bool): Flag indicating whether to run 2D network interaction analysis.
             random_seed (int): The Random Seed?
+            num_permutation (int): Number of Permutations for running the MSA
         """
 
         self.data_file_path = data_file_path
@@ -53,7 +55,7 @@ class MSA:
         self.binarize_data = binarize_data
         self.is_performance_score = is_score_performance
         self.random_seed = random_seed
-        self.n_permutation = 1000
+        self.n_permutation = num_permutation
         self.smallest_set_of_roi = 6 if run_interaction_2d else 3
         self.RoB = []
 

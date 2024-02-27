@@ -50,7 +50,8 @@ class TestMSA:
         is_score_performance=is_score_performance,
         binarize_data=True,
         run_interaction_2d=False,
-        random_seed=42
+        random_seed=42,
+        num_permutation=10
     )
 
     msa_instance_unbinarized = MSA(
@@ -63,7 +64,8 @@ class TestMSA:
         is_score_performance=is_score_performance,
         binarize_data=False,
         run_interaction_2d=False,
-        random_seed=42
+        random_seed=42,
+        num_permutation=10
     )
 
     def _is_binary(self, df: pd.DataFrame):

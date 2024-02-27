@@ -303,7 +303,8 @@ class GUI:
             binarize_data=bool(self.binarize_data_var.get()),
             run_interaction_2d=bool(self.run_network_interaction_2d_var.get()),
             is_score_performance=self.score_type_var.get() == "Performance",
-            random_seed=self.advanced_options.random_seed_var.get()
+            random_seed=self.advanced_options.random_seed_var.get(),
+            num_permutation=self.advanced_options.num_permutation_var.get()
         )
         msa.prepare_data()
         self.text.insert("end", "Prepared Data\n")
@@ -333,11 +334,16 @@ class AdvancedOptions:
     def __init__(self, parent):
         self.frame = ctk.CTkFrame(parent)
         self.random_seed_var = ctk.IntVar(value=28101999)
+        self.num_permutation_var = ctk.IntVar(value=1000)
         self.create_widgets()
 
     def create_widgets(self):
         self.frame.grid_columnconfigure((0, 1), weight=1)
         # Example advanced option: Number of Iterations for Randomized Search
+        self.setup_random_seed_field()
+        self.setup_num_permutation_field()
+
+    def setup_random_seed_field(self):
         self.random_seed_label = ctk.CTkLabel(
             self.frame, text="Random Seed: ", font=("Helvetica", 18)
         )
@@ -347,3 +353,15 @@ class AdvancedOptions:
             self.frame, width=100, font=("Helvetica", 18), textvariable=self.random_seed_var
         )
         self.random_seed_entry.grid(row=0, column=1, padx=10, sticky="e")
+
+    def setup_num_permutation_field(self):
+        self.num_permutation_label = ctk.CTkLabel(
+            self.frame, text="Num Permutation: ", font=("Helvetica", 18)
+        )
+        self.num_permutation_label.grid(row=1, column=0, padx=10, sticky="w")
+
+        self.num_permutation_entry = ctk.CTkEntry(
+            self.frame, width=100, font=("Helvetica", 18), textvariable=self.num_permutation_var
+        )
+        self.num_permutation_entry.grid(row=1, column=1, padx=10, sticky="e")
+
