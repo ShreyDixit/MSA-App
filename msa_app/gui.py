@@ -20,7 +20,7 @@ class GUI:
         self.score_file_path = ctk.StringVar()
         self.voxels_file_path = ctk.StringVar()
         self.output_folder_path = ctk.StringVar()
-        self.ml_model = ctk.StringVar()
+        self.ml_model = ctk.StringVar(value=list(ml_models.models.keys())[2])
         self.run_network_interaction_2d_var = ctk.IntVar()
         self.binarize_data_var = ctk.IntVar()
         self.run_iterative_var = ctk.IntVar()

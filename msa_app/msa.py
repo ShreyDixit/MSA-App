@@ -87,6 +87,9 @@ class MSA:
         self.voxels = voxels.copy()
         self.elements = list(self.X.columns)
         self.total_roi = len(self.elements)
+
+        assert self.total_roi >= self.smallest_set_of_roi, f"The number ROI should at least be {self.smallest_set_of_roi - 1} excluding ROB for the configuration you have chosen"
+
         self.progress_bar_step = 1 / (self.total_roi - self.smallest_set_of_roi + 1)
 
     def run_msa(self):
