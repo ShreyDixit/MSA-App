@@ -220,7 +220,6 @@ def train_model(
         model_collection.hyperparameters,
         cv=4,
         n_iter=200,
-        n_jobs=-1,
         verbose=2,
         random_state=random_seed
     )
