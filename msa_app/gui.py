@@ -27,7 +27,7 @@ class GUI:
         self.score_type_var = ctk.StringVar(value="Deficit")
 
     def configure_root(self):
-        self.root.geometry("600x850")
+        self.root.geometry("600x700")
         self.root.title("Lesion-Symptom Mapping using MSA")
 
     def create_widget(self):
@@ -53,12 +53,12 @@ class GUI:
             command=self.browse_data_file,
             font=("Helvetica", 18),
         )
-        self.score_type_label.grid(row=3, column=0, pady=20, padx=10, sticky="w")
+        self.score_type_label.grid(row=3, column=0, pady=12, padx=10, sticky="w")
 
         self.segemented_button = ctk.CTkSegmentedButton(self.root, values=["Deficit", "Performance"],
                                                      variable=self.score_type_var, font=("Helvetica", 18))
         self.segemented_button.grid(
-            row=3, column=1, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=3, column=1, columnspan=2, pady=12, padx=10, sticky="ew"
         )
 
     def setup_advanced_toolboxes(self):
@@ -87,12 +87,12 @@ class GUI:
             scrollbar_button_color="blue",
             scrollbar_button_hover_color="red",
         )
-        self.text.grid(row=10, column=0, columnspan=2, pady=20, padx=10, sticky="ew")
+        self.text.grid(row=10, column=0, columnspan=2, pady=12, padx=10, sticky="ew")
 
     def setup_progressbar(self):
         self.progress_bar = ctk.CTkProgressBar(self.root, mode="indeterminate")
         self.progress_bar.grid(
-            row=9, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=9, column=0, columnspan=2, pady=12, padx=10, sticky="ew"
         )
 
     def setup_msa_button(self):
@@ -103,7 +103,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.msa_button.grid(
-            row=8, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=8, column=0, columnspan=2, pady=12, padx=10, sticky="ew"
         )
 
     def setup_output_folder(self):
@@ -114,7 +114,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.browse_button_output_folder.grid(
-            row=7, column=0, pady=20, padx=10, sticky="w"
+            row=7, column=0, pady=12, padx=10, sticky="w"
         )
 
         # Entry widget to display the file path
@@ -137,7 +137,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.run_iterative_checkbox.grid(
-            row=5, column=0, columnspan=1, pady=20, padx=10, sticky="ew"
+            row=5, column=0, columnspan=1, pady=12, padx=10, sticky="ew"
         )
 
         self.run_network_interaction_2d_checkbox = ctk.CTkSwitch(
@@ -149,7 +149,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.run_network_interaction_2d_checkbox.grid(
-            row=5, column=1, columnspan=1, pady=20, padx=10, sticky="ew"
+            row=5, column=1, columnspan=1, pady=12, padx=10, sticky="ew"
         )
 
         self.binarize_data_checkbox = ctk.CTkSwitch(
@@ -161,7 +161,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.binarize_data_checkbox.grid(
-            row=6, column=0, columnspan=2, pady=20, padx=10, sticky="ew"
+            row=6, column=0, columnspan=2, pady=12, padx=10, sticky="ew"
         )
 
     def setup_ml_models(self):
@@ -187,7 +187,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.browse_button_voxels_file.grid(
-            row=2, column=0, pady=20, padx=10, sticky="w"
+            row=2, column=0, pady=12, padx=10, sticky="w"
         )
 
         # Entry widget to display the file path
@@ -208,7 +208,7 @@ class GUI:
             font=("Helvetica", 18),
         )
         self.browse_button_score_file.grid(
-            row=1, column=0, pady=20, padx=10, sticky="w"
+            row=1, column=0, pady=12, padx=10, sticky="w"
         )
 
         # Entry widget to display the file path
@@ -228,7 +228,7 @@ class GUI:
             command=self.browse_data_file,
             font=("Helvetica", 18),
         )
-        self.browse_button_data_file.grid(row=0, column=0, pady=20, padx=10, sticky="w")
+        self.browse_button_data_file.grid(row=0, column=0, pady=12, padx=10, sticky="w")
 
         # Entry widget to display the file path
         self.data_file_entry = ctk.CTkEntry(
@@ -265,13 +265,13 @@ class GUI:
                 "Advanced Options  +"
             )  # Show plus symbol when hidden
             self.advanced_options.frame.grid_remove()
-            self.root.geometry("600x850")
+            self.root.geometry("600x700")
         else:
             self.advanced_toggle_text.set(
                 "Advanced Options  -"
             )  # Show minus symbol when visible
             self.advanced_options.frame.grid()
-            self.root.geometry("600x950")
+            self.root.geometry("600x800")
 
     def click_run_button(self):
         if not self.run_iterative_var.get():
@@ -351,21 +351,21 @@ class AdvancedOptions:
         self.random_seed_label = ctk.CTkLabel(
             self.frame, text="Random Seed: ", font=("Helvetica", 18)
         )
-        self.random_seed_label.grid(row=0, column=0, padx=10, sticky="w")
+        self.random_seed_label.grid(row=0, column=0, padx=10, pady=12, sticky="w")
 
         self.random_seed_entry = ctk.CTkEntry(
             self.frame, width=100, font=("Helvetica", 18), textvariable=self.random_seed_var
         )
-        self.random_seed_entry.grid(row=0, column=1, padx=10, sticky="e")
+        self.random_seed_entry.grid(row=0, column=1, padx=10, pady=12, sticky="e")
 
     def setup_num_permutation_field(self):
         self.num_permutation_label = ctk.CTkLabel(
             self.frame, text="Num Permutation: ", font=("Helvetica", 18)
         )
-        self.num_permutation_label.grid(row=1, column=0, padx=10, sticky="w")
+        self.num_permutation_label.grid(row=1, column=0, padx=10, pady=12, sticky="w")
 
         self.num_permutation_entry = ctk.CTkEntry(
             self.frame, width=100, font=("Helvetica", 18), textvariable=self.num_permutation_var
         )
-        self.num_permutation_entry.grid(row=1, column=1, padx=10, sticky="e")
+        self.num_permutation_entry.grid(row=1, column=1, padx=10, pady=12, sticky="e")
 
