@@ -71,7 +71,8 @@ def prepare_data(
     data_file_path: str,
     score_file_path: str,
     voxels_file_path: str,
-    is_score_performance: bool
+    is_score_performance: bool,
+    add_rob_if_not_present: bool
 ) -> Tuple[pd.DataFrame, pd.Series, pd.Series]:
     """
     Prepares the data for model training and evaluation by loading and processing data files, score files, and optionally voxel files.
@@ -80,7 +81,8 @@ def prepare_data(
         data_file_path (str): Path to the data file, which should contain the percentage alteration of each brain ROI. Supports CSV or Excel formats.
         score_file_path (str): Path to the file containing scores (e.g., NIHSS Scores or performance metrics). Supports CSV or Excel formats.
         voxels_file_path (str, optional): Path to the voxels file, providing the number of voxels for each ROI. Supports CSV or Excel formats. If not provided, the number of voxels for each ROI is set to 1.
-        is_score_performance (bool): If True, the scores are considered as performance scores and are transformed accordingly; otherwise, they are treated directly as NIHSS Scores or similar clinical metrics.
+        is_score_performance (bool): If True, the scores are considered as performance scores and are transformed accordingly; otherwise, they are hhtreated directly as NIHSS Scores or similar clinical metrics.
+        add_rob_if_not_present (bool): If True, a ROB column will be added with 0 percentage of alteration and 0 voxels. It is ignored if ROB is already present
 
     Returns:
         Tuple[pd.DataFrame, pd.Series, pd.Series]: A tuple containing the processed feature matrix (X), the target variable (y), and voxel information (voxels), all ready for use in model training and evaluation.
@@ -115,9 +117,8 @@ def prepare_data(
     else:
         voxels = pd.Series(np.ones(len(X.columns)), index=X.columns)
 
-    if "rob" not in X.columns.str.lower():
-        X["rob"] = 0
-        voxels["rob"] = 0
+    if add_rob_if_not_present:
+        add_rob(X, voxels)
 
     X.columns = X.columns.str.lower()
     voxels.index = voxels.index.str.lower()
@@ -125,6 +126,11 @@ def prepare_data(
     y = y if is_score_performance else y.max() - y
 
     return X, y, voxels
+
+def add_rob(X, voxels):
+    if "rob" not in X.columns.str.lower():
+        X["rob"] = 0
+        voxels["rob"] = 0
 
 
 @typechecked

@@ -26,6 +26,7 @@ class MSA:
         binarize_data: bool,
         is_score_performance: bool,
         run_interaction_2d: bool,
+        add_rob_if_not_present: bool,
         random_seed: int,
         num_permutation: int
     ):
@@ -53,6 +54,7 @@ class MSA:
         self.progress_bar = progress_bar
         self.root_gui = root
         self.binarize_data = binarize_data
+        self.add_rob_if_not_present = add_rob_if_not_present
         self.is_performance_score = is_score_performance
         self.random_seed = random_seed
         self.n_permutation = num_permutation
@@ -80,6 +82,7 @@ class MSA:
             score_file_path=self.score_file_path,
             voxels_file_path=self.voxels_file_path,
             is_score_performance=self.is_performance_score,
+            add_rob_if_not_present=self.add_rob_if_not_present
         )
         self.X_unbinorized = X.copy()
         self.X = ml_models.binarize_data(X) if self.binarize_data else X.copy()

@@ -23,6 +23,7 @@ class GUI:
         self.ml_model = ctk.StringVar(value=list(ml_models.models.keys())[2])
         self.run_network_interaction_2d_var = ctk.IntVar()
         self.binarize_data_var = ctk.IntVar()
+        self.add_rob_if_not_present_var = ctk.IntVar()
         self.run_iterative_var = ctk.IntVar()
         self.score_type_var = ctk.StringVar(value="Deficit")
 
@@ -135,6 +136,7 @@ class GUI:
             text="Run Iterative",
             variable=self.run_iterative_var,
             font=("Helvetica", 18),
+            command=self.run_iterative_event
         )
         self.run_iterative_checkbox.grid(
             row=5, column=0, columnspan=1, pady=12, padx=10, sticky="ew"
@@ -163,6 +165,28 @@ class GUI:
         self.binarize_data_checkbox.grid(
             row=6, column=0, columnspan=2, pady=12, padx=10, sticky="ew"
         )
+
+        self.add_rob_if_not_present_checkbox = ctk.CTkSwitch(
+            self.root,
+            onvalue=1,
+            offvalue=0,
+            text="Add ROB if not present",
+            variable=self.add_rob_if_not_present_var,
+            font=("Helvetica", 18),
+            command=self.add_rob_if_not_present_event
+        )
+
+        self.add_rob_if_not_present_checkbox.grid(
+            row=6, column=1, columnspan=2, pady=12, padx=10, sticky="ew"
+        )
+
+    def add_rob_if_not_present_event(self):
+        if self.add_rob_if_not_present_var.get() == 0:
+            self.run_iterative_var.set(0)
+
+    def run_iterative_event(self):
+        if self.run_iterative_var.get() == 1:
+            self.add_rob_if_not_present_var.set(1)
 
     def setup_ml_models(self):
         self.ml_model_label = ctk.CTkLabel(
@@ -304,7 +328,8 @@ class GUI:
             run_interaction_2d=bool(self.run_network_interaction_2d_var.get()),
             is_score_performance=self.score_type_var.get() == "Performance",
             random_seed=self.advanced_options.random_seed_var.get(),
-            num_permutation=self.advanced_options.num_permutation_var.get()
+            num_permutation=self.advanced_options.num_permutation_var.get(),
+            add_rob_if_not_present=bool(self.add_rob_if_not_present_var.get())
         )
         msa.prepare_data()
         self.text.insert("end", "Training Model\n")
