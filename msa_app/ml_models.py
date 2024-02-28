@@ -23,14 +23,14 @@ SupportVectorClassifierParams = {
     "kernel": ["sigmoid", "linear", "rbf", "poly"],
     "C": uniform(0.1, 10),
     "gamma": ["scale", "auto"],
-    "degree": randint(1, 10),
+    "degree": randint(1, 4),
 }
 
 SupportVectorRegressionParams = {
     "kernel": ["sigmoid", "linear", "rbf", "poly"],
     "C": uniform(0.1, 10),
     "gamma": ["scale", "auto"],
-    "degree": randint(1, 5),
+    "degree": randint(1, 3),
 }
 
 DecisionTreeRegressorParams = {
