@@ -13,14 +13,14 @@ class GUI:
         self.configure_root()
         self.initialize_variables()
         self.create_widget()
-        self.advanced_options = AdvancedOptions(self.root)
+        self.advanced_options = AdvancedOptions(self)
 
     def initialize_variables(self):
         self.data_file_path = ctk.StringVar()
         self.score_file_path = ctk.StringVar()
         self.voxels_file_path = ctk.StringVar()
         self.output_folder_path = ctk.StringVar()
-        self.ml_model = ctk.StringVar(value=list(ml_models.models.keys())[2])
+        self.ml_model_var = ctk.StringVar(value=ml_models.list_of_ml_models[2])
         self.run_network_interaction_2d_var = ctk.IntVar()
         self.binarize_data_var = ctk.IntVar()
         self.add_rob_if_not_present_var = ctk.IntVar()
@@ -196,12 +196,19 @@ class GUI:
 
         self.ml_model_combobox = ctk.CTkComboBox(
             self.root,
-            values=list(ml_models.models.keys()),
-            variable=self.ml_model,
+            values=ml_models.list_of_ml_models,
+            variable=self.ml_model_var,
             width=300,
             font=("Helvetica", 18),
+            command=self.check_if_full_msa_selected
         )
         self.ml_model_combobox.grid(row=4, column=1, padx=10, sticky="e")
+
+    def check_if_full_msa_selected(self, choice):
+        if choice == ml_models.list_of_ml_models[-1]:
+            self.advanced_options.full_msa_var.set(1)
+        else:
+            self.advanced_options.full_msa_var.set(0)
 
     def setup_voxels_file(self):
         self.browse_button_voxels_file = ctk.CTkButton(
@@ -295,7 +302,7 @@ class GUI:
                 "Advanced Options  -"
             )  # Show minus symbol when visible
             self.advanced_options.frame.grid()
-            self.root.geometry("600x800")
+            self.root.geometry("600x850")
 
     def click_run_button(self):
         if not self.run_iterative_var.get():
@@ -321,7 +328,7 @@ class GUI:
             data_file_path=self.data_file_path.get(),
             voxels_file_path=self.voxels_file_path.get(),
             score_file_path=self.score_file_path.get(),
-            model_name=self.ml_model.get(),
+            model_name=self.ml_model_var.get(),
             progress_bar=self.progress_bar,
             root=self.root,
             binarize_data=bool(self.binarize_data_var.get()),
@@ -329,7 +336,8 @@ class GUI:
             is_score_performance=self.score_type_var.get() == "Performance",
             random_seed=self.advanced_options.random_seed_var.get(),
             num_permutation=self.advanced_options.num_permutation_var.get(),
-            add_rob_if_not_present=bool(self.add_rob_if_not_present_var.get())
+            add_rob_if_not_present=bool(self.add_rob_if_not_present_var.get()),
+            full_msa=bool(self.advanced_options.full_msa_var.get())
         )
         msa.prepare_data()
         self.text.insert("end", "Training Model\n")
@@ -360,10 +368,12 @@ class GUI:
 
 
 class AdvancedOptions:
-    def __init__(self, parent):
-        self.frame = ctk.CTkFrame(parent)
+    def __init__(self, parent: GUI):
+        self.parent = parent
+        self.frame = ctk.CTkFrame(parent.root)
         self.random_seed_var = ctk.IntVar(value=2810)
         self.num_permutation_var = ctk.IntVar(value=1000)
+        self.full_msa_var = ctk.IntVar(value=0)
         self.create_widgets()
 
     def create_widgets(self):
@@ -371,6 +381,7 @@ class AdvancedOptions:
         # Example advanced option: Number of Iterations for Randomized Search
         self.setup_random_seed_field()
         self.setup_num_permutation_field()
+        self.setup_full_msa_checkbox()
 
     def setup_random_seed_field(self):
         self.random_seed_label = ctk.CTkLabel(
@@ -393,4 +404,24 @@ class AdvancedOptions:
             self.frame, width=100, font=("Helvetica", 18), textvariable=self.num_permutation_var
         )
         self.num_permutation_entry.grid(row=1, column=1, padx=10, pady=12, sticky="e")
+    
+    def setup_full_msa_checkbox(self):
+        self.full_msa_checkbox = ctk.CTkSwitch(
+            self.frame,
+            onvalue=1,
+            offvalue=0,
+            text="Perform Full MSA",
+            variable=self.full_msa_var,
+            font=("Helvetica", 18),
+            command=self.full_msa_event
+        )
 
+        self.full_msa_checkbox.grid(
+            row=2, column=0, columnspan=2, pady=12, padx=10, sticky="ew"
+        )
+
+    def full_msa_event(self):
+        if self.full_msa_var.get()==1:
+            self.parent.ml_model_var.set(ml_models.list_of_ml_models[-1])
+        else:
+            self.parent.ml_model_var.set(ml_models.list_of_ml_models[2])

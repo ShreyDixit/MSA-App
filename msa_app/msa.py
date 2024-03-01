@@ -28,7 +28,8 @@ class MSA:
         run_interaction_2d: bool,
         add_rob_if_not_present: bool,
         random_seed: int,
-        num_permutation: int
+        num_permutation: int,
+        full_msa: bool
     ):
         """
         Initialize the MSA object with data paths, model information, and GUI components.
@@ -45,6 +46,8 @@ class MSA:
             run_interaction_2d (bool): Flag indicating whether to run 2D network interaction analysis.
             random_seed (int): The Random Seed?
             num_permutation (int): Number of Permutations for running the MSA
+            full_msa (bool): If True, it will run the full MSA with all possible combinations of lesions. The dataset provided must be complete i.e. it
+                should have 2^n rows where n is the number of ROI
         """
 
         self.data_file_path = data_file_path
@@ -58,6 +61,7 @@ class MSA:
         self.is_performance_score = is_score_performance
         self.random_seed = random_seed
         self.n_permutation = num_permutation
+        self.full_msa = full_msa
         self.smallest_set_of_roi = 6 if run_interaction_2d else 3
         self.RoB = []
 
@@ -91,9 +95,21 @@ class MSA:
         self.elements = list(self.X.columns)
         self.total_roi = len(self.elements)
 
+        if self.full_msa:
+            self.perform_full_msa_check(X, voxels)
+            self.n_permutation = max(2**self.total_roi, 4000)
+
         assert self.total_roi >= self.smallest_set_of_roi, f"The number ROI should at least be {self.smallest_set_of_roi - 1} excluding ROB for the configuration you have chosen"
 
         self.progress_bar_step = 1 / (self.total_roi - self.smallest_set_of_roi + 1)
+
+    def perform_full_msa_check(self, X, voxels):
+        if self.add_rob_if_not_present:
+            num_roi = len(X.columns) if voxels['rob'] > 0 else len(X.columns) - 1
+        else:
+            num_roi = len(X.columns)
+
+        assert len(X) == 2**num_roi, "You have selected Full MSA but the dataset uploaded does not have all possible combinations of ROI"
 
     def run_msa(self):
         self.shapley_table = msa.interface(

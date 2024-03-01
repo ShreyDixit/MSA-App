@@ -4,6 +4,7 @@ from sklearn.metrics import accuracy_score, f1_score
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.svm import SVC, SVR
 from scipy.stats import randint, uniform
@@ -48,6 +49,9 @@ RandomForestRegressorParams = {
     "min_samples_leaf": randint(1, 10),
     "bootstrap": [True, False],
 }
+KNeighborsClassifierParams = {
+    "n_neighbors": [1],
+}
 
 models = {
     "Linear Regression": Model_Collection(LinearRegression, LinearRegressionParams),
@@ -62,8 +66,10 @@ models = {
     "Random Forest Regressor": Model_Collection(
         RandomForestRegressor, RandomForestRegressorParams
     ),
+    "Full MSA (Advanced)": Model_Collection(KNeighborsClassifier, KNeighborsClassifierParams)
 }
 
+list_of_ml_models = list(models.keys())
 
 @typechecked
 def prepare_data(

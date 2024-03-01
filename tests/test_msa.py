@@ -52,7 +52,8 @@ class TestMSA:
         run_interaction_2d=False,
         random_seed=42,
         num_permutation=10,
-        add_rob_if_not_present=True
+        add_rob_if_not_present=True,
+        full_msa=False,
     )
 
     msa_instance_unbinarized = MSA(
@@ -67,7 +68,8 @@ class TestMSA:
         run_interaction_2d=False,
         random_seed=42,
         num_permutation=10,
-        add_rob_if_not_present=True
+        add_rob_if_not_present=True,
+        full_msa=False
     )
 
     def _is_binary(self, df: pd.DataFrame):
