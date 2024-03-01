@@ -4,6 +4,7 @@ from sklearn.metrics import accuracy_score, f1_score
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.svm import SVC, SVR
 from scipy.stats import randint, uniform
@@ -23,14 +24,14 @@ SupportVectorClassifierParams = {
     "kernel": ["sigmoid", "linear", "rbf", "poly"],
     "C": uniform(0.1, 10),
     "gamma": ["scale", "auto"],
-    "degree": randint(1, 10),
+    "degree": randint(1, 4),
 }
 
 SupportVectorRegressionParams = {
     "kernel": ["sigmoid", "linear", "rbf", "poly"],
     "C": uniform(0.1, 10),
     "gamma": ["scale", "auto"],
-    "degree": randint(1, 5),
+    "degree": randint(1, 3),
 }
 
 DecisionTreeRegressorParams = {
@@ -48,6 +49,9 @@ RandomForestRegressorParams = {
     "min_samples_leaf": randint(1, 10),
     "bootstrap": [True, False],
 }
+KNeighborsClassifierParams = {
+    "n_neighbors": [1],
+}
 
 models = {
     "Linear Regression": Model_Collection(LinearRegression, LinearRegressionParams),
@@ -62,8 +66,10 @@ models = {
     "Random Forest Regressor": Model_Collection(
         RandomForestRegressor, RandomForestRegressorParams
     ),
+    "Full MSA (Advanced)": Model_Collection(KNeighborsClassifier, KNeighborsClassifierParams)
 }
 
+list_of_ml_models = list(models.keys())
 
 @typechecked
 def prepare_data(
@@ -71,7 +77,8 @@ def prepare_data(
     data_file_path: str,
     score_file_path: str,
     voxels_file_path: str,
-    is_score_performance: bool
+    is_score_performance: bool,
+    add_rob_if_not_present: bool
 ) -> Tuple[pd.DataFrame, pd.Series, pd.Series]:
     """
     Prepares the data for model training and evaluation by loading and processing data files, score files, and optionally voxel files.
@@ -80,7 +87,8 @@ def prepare_data(
         data_file_path (str): Path to the data file, which should contain the percentage alteration of each brain ROI. Supports CSV or Excel formats.
         score_file_path (str): Path to the file containing scores (e.g., NIHSS Scores or performance metrics). Supports CSV or Excel formats.
         voxels_file_path (str, optional): Path to the voxels file, providing the number of voxels for each ROI. Supports CSV or Excel formats. If not provided, the number of voxels for each ROI is set to 1.
-        is_score_performance (bool): If True, the scores are considered as performance scores and are transformed accordingly; otherwise, they are treated directly as NIHSS Scores or similar clinical metrics.
+        is_score_performance (bool): If True, the scores are considered as performance scores and are transformed accordingly; otherwise, they are hhtreated directly as NIHSS Scores or similar clinical metrics.
+        add_rob_if_not_present (bool): If True, a ROB column will be added with 0 percentage of alteration and 0 voxels. It is ignored if ROB is already present
 
     Returns:
         Tuple[pd.DataFrame, pd.Series, pd.Series]: A tuple containing the processed feature matrix (X), the target variable (y), and voxel information (voxels), all ready for use in model training and evaluation.
@@ -115,9 +123,8 @@ def prepare_data(
     else:
         voxels = pd.Series(np.ones(len(X.columns)), index=X.columns)
 
-    if "rob" not in X.columns.str.lower():
-        X["rob"] = 0
-        voxels["rob"] = 0
+    if add_rob_if_not_present:
+        add_rob(X, voxels)
 
     X.columns = X.columns.str.lower()
     voxels.index = voxels.index.str.lower()
@@ -125,6 +132,11 @@ def prepare_data(
     y = y if is_score_performance else y.max() - y
 
     return X, y, voxels
+
+def add_rob(X, voxels):
+    if "rob" not in X.columns.str.lower():
+        X["rob"] = 0
+        voxels["rob"] = 0
 
 
 @typechecked

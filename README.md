@@ -59,12 +59,14 @@ The GUI offers several configurable options:
 3. Run Iterative: If enabled, it will run the MSA iteratively until the smallest set of ROI are left with a non-significant contribution from the ROB.
 4. Run Network Interaction: If enabled, it will calculate the network interaction of each ROI pairs after the MSA. The interaction between two regions quantifies how much the contribution of the two regions considered jointly is larger or smaller than the sum of the contribution of each of them individually when the other one is lesioned.
 5. Binarize Data: Binarizes stroke data by setting values below the median to 0, and above to 1.
+6. Add ROB if not present: This option will add an ROB (Rest of the Brain) column in the data with 0 percentage of alteration and 0 number of voxels if ROB doesn't already exist in the lesion data file. This is essential for performing iterative MSA.
 
 ### Advanced Options
 MSA usually works without having to tinker with these options so only do so if you really know what you're doing.
 
 1. Random Seed: A random seed to pass in order to have a different random state.
 2. Num Permutations: Number of Permutations to use for running MSA. 1000 is almost exhaustive for 10 ROI but also works well for more. Increasing this might lead to better results but will definitely increase the computation time linearly.
+3. **Full MSA**: This option allows you to perform an "almost" full MSA analysis. This means that every possible combination of lesions is passed as the lesion data, and the MSA calculates the precise contribution of each ROI. You can create a synthetic dataset using the script available [here](https://github.com/ShreyDixit/MSA-App/blob/master/data/create_synthetic_data.py). However, caution is advised when using this option because the data must contain \(2^n\) rows, where \(n\) is the number of ROIs. This requirement can lead to a rapid increase in data size; for instance, 25 ROIs would result in 33 million rows. Additionally, due to implementation convenience, this is considered Full MSA only for up to 11 ROIs. Beyond that, the analysis processes a minimum of 99.5% of all combinations.
 
 ## TODO:
 - Better Styling of the Application
