@@ -2,13 +2,19 @@ from itertools import product
 import pytest
 import customtkinter as ctk
 from msa_app.msa import MSA
+
 model_list = ["Linear Regression", "Logistic Regression"]
 pass_voxel_file_options = [True, False]
+
+
 class TestMSALong:
     root = ctk.CTk()
     progress_bar = ctk.CTkProgressBar(root)
 
-    @pytest.mark.parametrize("model_name, pass_voxel_file", list(product(model_list[:-1], pass_voxel_file_options)))
+    @pytest.mark.parametrize(
+        "model_name, pass_voxel_file",
+        list(product(model_list, pass_voxel_file_options)),
+    )
     def test_msa(self, model_name, pass_voxel_file):
         msa = MSA(
             data_file_path="data/roi_data.csv",
@@ -23,7 +29,7 @@ class TestMSALong:
             random_seed=42,
             num_permutation=10,
             full_msa=False,
-            add_rob_if_not_present=True
+            add_rob_if_not_present=True,
         )
 
         msa.prepare_data()

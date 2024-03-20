@@ -69,7 +69,7 @@ class TestMSA:
         random_seed=42,
         num_permutation=10,
         add_rob_if_not_present=True,
-        full_msa=False
+        full_msa=False,
     )
 
     def _is_binary(self, df: pd.DataFrame):
@@ -104,7 +104,7 @@ class TestMSA:
     def test_model_training_and_evaluation(self, mocker, binarize):
         mocker.patch.object(ml_models, "train_model")
 
-        ml_models.train_model.return_value = (1.0, 1.0, FakeEstimator())
+        ml_models.train_model.return_value = (1.0, 1.0, 1.0, FakeEstimator())
 
         if binarize:
             self.msa_instance_binarized.train_model()
@@ -173,7 +173,7 @@ class TestMSA:
     def test_run_msa_iterative(self, mocker, binarize):
         mocker.patch.object(ml_models, "train_model")
 
-        ml_models.train_model.return_value = (1.0, 1.0, FakeEstimator())
+        ml_models.train_model.return_value = (1.0, 1.0, 1.0, FakeEstimator())
         if binarize:
             self.msa_instance_binarized.run_iterative_msa()
             assert isinstance(
