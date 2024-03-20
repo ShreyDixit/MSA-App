@@ -155,7 +155,7 @@ class MSA:
         while len(self.elements) > self.smallest_set_of_roi:
             lowest_contributing_region = self._get_lowest_contributing_region()
 
-            if (not self._is_significant("rob")) and self.r2 > 0.2:
+            if (not self._is_significant("rob")) and self.r2 > 0.15:
                 self.save_iterative_msa_attributes()
 
             self.add_roi_to_rob(lowest_contributing_region)
