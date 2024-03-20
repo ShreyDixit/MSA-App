@@ -1,6 +1,6 @@
 from typing import Tuple
 import numpy as np
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, r2_score
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
@@ -66,10 +66,13 @@ models = {
     "Random Forest Regressor": Model_Collection(
         RandomForestRegressor, RandomForestRegressorParams
     ),
-    "Full MSA (Advanced)": Model_Collection(KNeighborsClassifier, KNeighborsClassifierParams)
+    "Full MSA (Advanced)": Model_Collection(
+        KNeighborsClassifier, KNeighborsClassifierParams
+    ),
 }
 
 list_of_ml_models = list(models.keys())
+
 
 @typechecked
 def prepare_data(
@@ -132,6 +135,7 @@ def prepare_data(
     y = y if is_score_performance else y.max() - y
 
     return X, y, voxels
+
 
 def add_rob(X, voxels):
     if "rob" not in X.columns.str.lower():
@@ -206,7 +210,7 @@ def process_path(data_file_path: str) -> Tuple[str, str]:
 @typechecked
 def train_model(
     model_name: str, X: pd.DataFrame, y: pd.Series, random_seed: int
-) -> Tuple[float, float, RandomizedSearchCV]:
+) -> Tuple[float, float, float, RandomizedSearchCV]:
     """
     Trains a machine learning model using randomized search over a predefined hyperparameter space and evaluates its performance.
 
@@ -217,7 +221,7 @@ def train_model(
         random_seed (int): The Random Seed?
 
     Returns:
-        Tuple[float, float, RandomizedSearchCV]: The accuracy score, F1 score, and the trained RandomizedSearchCV object.
+        Tuple[float, float, float, RandomizedSearchCV]: The accuracy score, F1 score, r2_score, and the trained RandomizedSearchCV object.
 
     Raises:
         AssertionError: If the input data X is not normalized between 0 and 1.
@@ -233,8 +237,13 @@ def train_model(
         cv=4,
         n_iter=200,
         verbose=2,
-        random_state=random_seed
+        random_state=random_seed,
     )
     opt.fit(X.values, y)
     y_pred = np.rint(opt.predict(X.values))
-    return accuracy_score(y, y_pred), f1_score(y, y_pred, average="macro"), opt
+    return (
+        accuracy_score(y, y_pred),
+        f1_score(y, y_pred, average="macro"),
+        r2_score(y, y_pred),
+        opt,
+    )

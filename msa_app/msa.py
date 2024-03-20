@@ -29,7 +29,7 @@ class MSA:
         add_rob_if_not_present: bool,
         random_seed: int,
         num_permutation: int,
-        full_msa: bool
+        full_msa: bool,
     ):
         """
         Initialize the MSA object with data paths, model information, and GUI components.
@@ -66,11 +66,12 @@ class MSA:
         self.RoB = []
 
     def train_model(self):
-        accuracy, f1, trained_model = ml_models.train_model(
+        accuracy, f1, r2, trained_model = ml_models.train_model(
             model_name=self.model_name, X=self.X, y=self.y, random_seed=self.random_seed
         )
         self.accuracy = accuracy
         self.f1 = f1
+        self.r2 = r2
         self.trained_model = trained_model
 
     def prepare_data(self):
@@ -86,7 +87,7 @@ class MSA:
             score_file_path=self.score_file_path,
             voxels_file_path=self.voxels_file_path,
             is_score_performance=self.is_performance_score,
-            add_rob_if_not_present=self.add_rob_if_not_present
+            add_rob_if_not_present=self.add_rob_if_not_present,
         )
         self.X_unbinorized = X.copy()
         self.X = ml_models.binarize_data(X) if self.binarize_data else X.copy()
@@ -99,24 +100,28 @@ class MSA:
             self.perform_full_msa_check(X, voxels)
             self.n_permutation = max(2**self.total_roi, 4000)
 
-        assert self.total_roi >= self.smallest_set_of_roi, f"The number ROI should at least be {self.smallest_set_of_roi - 1} excluding ROB for the configuration you have chosen"
+        assert (
+            self.total_roi >= self.smallest_set_of_roi
+        ), f"The number ROI should at least be {self.smallest_set_of_roi - 1} excluding ROB for the configuration you have chosen"
 
         self.progress_bar_step = 1 / (self.total_roi - self.smallest_set_of_roi + 1)
 
     def perform_full_msa_check(self, X, voxels):
         if self.add_rob_if_not_present:
-            num_roi = len(X.columns) if voxels['rob'] > 0 else len(X.columns) - 1
+            num_roi = len(X.columns) if voxels["rob"] > 0 else len(X.columns) - 1
         else:
             num_roi = len(X.columns)
 
-        assert len(X) == 2**num_roi, "You have selected Full MSA but the dataset uploaded does not have all possible combinations of ROI"
+        assert (
+            len(X) == 2**num_roi
+        ), "You have selected Full MSA but the dataset uploaded does not have all possible combinations of ROI"
 
     def run_msa(self):
         self.shapley_table = msa.interface(
             n_permutations=self.n_permutation,
             elements=list(self.X.columns),
             objective_function=self.objective_function,
-            random_seed=self.random_seed
+            random_seed=self.random_seed,
         )
 
     def run_iterative_msa(self):
@@ -150,7 +155,7 @@ class MSA:
         while len(self.elements) > self.smallest_set_of_roi:
             lowest_contributing_region = self._get_lowest_contributing_region()
 
-            if not self._is_significant("rob"):
+            if (not self._is_significant("rob")) and self.r2 > 0.15:
                 self.save_iterative_msa_attributes()
 
             self.add_roi_to_rob(lowest_contributing_region)
@@ -180,6 +185,7 @@ class MSA:
         self.shapley_table_iterative = self.shapley_table.copy()
         self.accuracy_iterative = self.accuracy
         self.f1_iterative = self.f1
+        self.r2 = self.r2
         self.trained_model_iterative = self.trained_model
         self.RoB_iterative = self.RoB.copy()
         self.X_unbinorized_iterative = self.X_unbinorized.copy()
@@ -255,7 +261,7 @@ class MSA:
                 objective_function=self.objective_function,
                 pairs=[pair],
                 lazy=True,
-                random_seed=self.random_seed
+                random_seed=self.random_seed,
             )
             self.update_progressbar()
 
@@ -275,9 +281,15 @@ class MSA:
             "Rest of Brain": self.RoB_iterative,
             "accuracy": self.accuracy_iterative,
             "f1": self.f1_iterative,
+            "r2": self.r2,
             "model used": self.model_name,
             "model_params": self.trained_model_iterative.best_params_,
         }
+
+        if save_dict["r2"] < 0.2:
+            save_dict["WARNING"] = (
+                "THE PREDICTION PERFORMANCE OF THE ML MODEL IS VERY LOW SO THE RESULTS MIGHT NOT BE USEFULL"
+            )
 
         saving_time = time.strftime("%Y%m%d-%H%M%S")
         with open(
@@ -286,15 +298,20 @@ class MSA:
             json.dump(save_dict, f, indent=4)
 
         self.shapley_table_iterative.shapley_values.to_csv(
-            os.path.join(output_folder, f"shapley_values_iterative_{saving_time}.csv"), header=None
+            os.path.join(output_folder, f"shapley_values_iterative_{saving_time}.csv"),
+            header=None,
         )
 
         self.save_network_interaction(output_folder, saving_time)
 
     def save_network_interaction(self, output_folder, saving_time):
         if hasattr(self, "interactions"):
-            df = pd.DataFrame(self.interactions, index=self.elements, columns=self.elements)
-            df.to_csv(os.path.join(output_folder, f"network_interaction_{saving_time}.csv"))
+            df = pd.DataFrame(
+                self.interactions, index=self.elements, columns=self.elements
+            )
+            df.to_csv(
+                os.path.join(output_folder, f"network_interaction_{saving_time}.csv")
+            )
 
     def save(self, output_folder: str):
         save_dict = {
@@ -306,12 +323,18 @@ class MSA:
             "model_params": self.trained_model.best_params_,
         }
 
+        if save_dict["r2"] < 0.2:
+            save_dict["WARNING"] = (
+                "THE PREDICTION PERFORMANCE OF THE ML MODEL IS VERY LOW SO THE RESULTS MIGHT NOT BE USEFULL"
+            )
+
         saving_time = time.strftime("%Y%m%d-%H%M%S")
         with open(os.path.join(output_folder, f"results_{saving_time}.json"), "w") as f:
             json.dump(save_dict, f, indent=4)
 
         self.shapley_table.shapley_values.to_csv(
-            os.path.join(output_folder, f"shapley_values_{saving_time}.csv"), header=None
+            os.path.join(output_folder, f"shapley_values_{saving_time}.csv"),
+            header=None,
         )
 
         self.save_network_interaction(output_folder, saving_time)
@@ -345,11 +368,19 @@ class MSA:
     def plot_network_interaction(self):
         # Plotting the heatmap
 
-        vmax = np.max(np.abs(self.interactions))  # Find the maximum absolute value in the data
+        vmax = np.max(
+            np.abs(self.interactions)
+        )  # Find the maximum absolute value in the data
         vmin = -vmax  # Set vmin to the negative of vmax to center the colormap at 0
 
         plt.figure(figsize=(10, 10))
-        plt.imshow(self.interactions, cmap="RdBu_r", interpolation="nearest", vmin=vmin, vmax=vmax)
+        plt.imshow(
+            self.interactions,
+            cmap="RdBu_r",
+            interpolation="nearest",
+            vmin=vmin,
+            vmax=vmax,
+        )
         plt.xticks(np.arange(len(self.elements)), self.elements, rotation=75)
         plt.yticks(np.arange(len(self.elements)), self.elements)
         plt.colorbar()  # Display color bar

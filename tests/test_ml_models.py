@@ -103,11 +103,12 @@ class TestModelTraining:
         y = pd.Series(np.random.randint(0, 2, 100))
 
         # Act
-        accuracy, f1, opt = train_model(model_name, X, y, random_seed=42)
+        accuracy, f1, r2, opt = train_model(model_name, X, y, random_seed=42)
 
         # Assert
         assert isinstance(accuracy, float)
         assert isinstance(f1, float)
+        assert isinstance(r2, float)
         assert isinstance(opt, RandomizedSearchCV)
 
     def test_train_model_type_error(self):
@@ -147,8 +148,13 @@ class TestPrepareData:
     voxels_file_path = "data/num_voxels.csv"
 
     # Given a valid CSV data file path, y_column name, y_column_type, and voxels file path, the function should return a tuple containing X, y, and voxels.
-    @pytest.mark.parametrize("is_score_performance, add_rob_if_not_present", [(True, False), (True, True), (False, False), (False, True)])
-    def test_valid_file_path_with_voxels(self, is_score_performance, add_rob_if_not_present):
+    @pytest.mark.parametrize(
+        "is_score_performance, add_rob_if_not_present",
+        [(True, False), (True, True), (False, False), (False, True)],
+    )
+    def test_valid_file_path_with_voxels(
+        self, is_score_performance, add_rob_if_not_present
+    ):
 
         # Act
         X, y, voxels = prepare_data(
@@ -156,7 +162,7 @@ class TestPrepareData:
             score_file_path=self.score_file_path,
             voxels_file_path=self.voxels_file_path,
             is_score_performance=is_score_performance,
-            add_rob_if_not_present=add_rob_if_not_present
+            add_rob_if_not_present=add_rob_if_not_present,
         )
 
         # Assert
@@ -165,8 +171,13 @@ class TestPrepareData:
         assert isinstance(voxels, pd.Series)
 
     # Given a valid CSV data file path, y_column name, y_column_type, and no voxels file path, the function should return a tuple containing X, y, and voxels with all voxels set to 1.
-    @pytest.mark.parametrize("is_score_performance, add_rob_if_not_present", [(True, False), (True, True), (False, False), (False, True)])
-    def test_valid_csv_file_path_without_voxels(self, is_score_performance, add_rob_if_not_present):
+    @pytest.mark.parametrize(
+        "is_score_performance, add_rob_if_not_present",
+        [(True, False), (True, True), (False, False), (False, True)],
+    )
+    def test_valid_csv_file_path_without_voxels(
+        self, is_score_performance, add_rob_if_not_present
+    ):
         # Arrange
         voxels_file_path = ""
 
@@ -176,7 +187,7 @@ class TestPrepareData:
             score_file_path=self.score_file_path,
             voxels_file_path=voxels_file_path,
             is_score_performance=is_score_performance,
-            add_rob_if_not_present=add_rob_if_not_present
+            add_rob_if_not_present=add_rob_if_not_present,
         )
 
         # Assert
@@ -195,7 +206,7 @@ class TestPrepareData:
             score_file_path=self.score_file_path,
             voxels_file_path=self.voxels_file_path,
             is_score_performance=False,
-            add_rob_if_not_present=True
+            add_rob_if_not_present=True,
         )
         y_real = pd.read_csv(self.score_file_path).iloc[:, 0]
         assert y.min() == 0

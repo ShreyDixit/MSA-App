@@ -56,8 +56,12 @@ class GUI:
         )
         self.score_type_label.grid(row=3, column=0, pady=12, padx=10, sticky="w")
 
-        self.segemented_button = ctk.CTkSegmentedButton(self.root, values=["Deficit", "Performance"],
-                                                     variable=self.score_type_var, font=("Helvetica", 18))
+        self.segemented_button = ctk.CTkSegmentedButton(
+            self.root,
+            values=["Deficit", "Performance"],
+            variable=self.score_type_var,
+            font=("Helvetica", 18),
+        )
         self.segemented_button.grid(
             row=3, column=1, columnspan=2, pady=12, padx=10, sticky="ew"
         )
@@ -136,7 +140,7 @@ class GUI:
             text="Run Iterative",
             variable=self.run_iterative_var,
             font=("Helvetica", 18),
-            command=self.run_iterative_event
+            command=self.run_iterative_event,
         )
         self.run_iterative_checkbox.grid(
             row=5, column=0, columnspan=1, pady=12, padx=10, sticky="ew"
@@ -173,7 +177,7 @@ class GUI:
             text="Add ROB if not present",
             variable=self.add_rob_if_not_present_var,
             font=("Helvetica", 18),
-            command=self.add_rob_if_not_present_event
+            command=self.add_rob_if_not_present_event,
         )
 
         self.add_rob_if_not_present_checkbox.grid(
@@ -200,7 +204,7 @@ class GUI:
             variable=self.ml_model_var,
             width=300,
             font=("Helvetica", 18),
-            command=self.check_if_full_msa_selected
+            command=self.check_if_full_msa_selected,
         )
         self.ml_model_combobox.grid(row=4, column=1, padx=10, sticky="e")
 
@@ -337,7 +341,7 @@ class GUI:
             random_seed=self.advanced_options.random_seed_var.get(),
             num_permutation=self.advanced_options.num_permutation_var.get(),
             add_rob_if_not_present=bool(self.add_rob_if_not_present_var.get()),
-            full_msa=bool(self.advanced_options.full_msa_var.get())
+            full_msa=bool(self.advanced_options.full_msa_var.get()),
         )
         msa.prepare_data()
         self.text.insert("end", "Training Model\n")
@@ -362,7 +366,6 @@ class GUI:
             msa.save_iterative(self.output_folder_path.get())
         else:
             msa.save(self.output_folder_path.get())
-        
 
         self.text.insert("end", "Saved Results\n")
 
@@ -390,7 +393,10 @@ class AdvancedOptions:
         self.random_seed_label.grid(row=0, column=0, padx=10, pady=12, sticky="w")
 
         self.random_seed_entry = ctk.CTkEntry(
-            self.frame, width=100, font=("Helvetica", 18), textvariable=self.random_seed_var
+            self.frame,
+            width=100,
+            font=("Helvetica", 18),
+            textvariable=self.random_seed_var,
         )
         self.random_seed_entry.grid(row=0, column=1, padx=10, pady=12, sticky="e")
 
@@ -401,10 +407,13 @@ class AdvancedOptions:
         self.num_permutation_label.grid(row=1, column=0, padx=10, pady=12, sticky="w")
 
         self.num_permutation_entry = ctk.CTkEntry(
-            self.frame, width=100, font=("Helvetica", 18), textvariable=self.num_permutation_var
+            self.frame,
+            width=100,
+            font=("Helvetica", 18),
+            textvariable=self.num_permutation_var,
         )
         self.num_permutation_entry.grid(row=1, column=1, padx=10, pady=12, sticky="e")
-    
+
     def setup_full_msa_checkbox(self):
         self.full_msa_checkbox = ctk.CTkSwitch(
             self.frame,
@@ -413,7 +422,7 @@ class AdvancedOptions:
             text="Perform Full MSA",
             variable=self.full_msa_var,
             font=("Helvetica", 18),
-            command=self.full_msa_event
+            command=self.full_msa_event,
         )
 
         self.full_msa_checkbox.grid(
@@ -421,7 +430,7 @@ class AdvancedOptions:
         )
 
     def full_msa_event(self):
-        if self.full_msa_var.get()==1:
+        if self.full_msa_var.get() == 1:
             self.parent.ml_model_var.set(ml_models.list_of_ml_models[-1])
         else:
             self.parent.ml_model_var.set(ml_models.list_of_ml_models[2])
